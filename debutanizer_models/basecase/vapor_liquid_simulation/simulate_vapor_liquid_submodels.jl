@@ -28,6 +28,9 @@ println("Perturbation factor: $(perturb_factor_string)")
 # time step
 delta_t = parse(Float64, ARGS[5])
 println("Time step: $(delta_t)")
+# model name
+model_name = ARGS[6]
+println("Model name: $(model_name)")
 ################################################
 
 println("Number of threads: $(nthreads())")
@@ -61,6 +64,11 @@ spcnames = getfield.(liq.species, :name)
 liqrxnstrings = getrxnstr.(liq.reactions)
 
 majorspeciesnames = ["N-BUTANE", "2-BUTENE", "1,3-BUTADIENE", "CYCLOPENTADIENE", "BENZENE", "1,3-CYCLOHEXADIENE", "TOLUENE", "STYRENE"]
+constantspecies = majorspeciesnames
+
+if model_name == "trace_oxygen_perturbed_debutanizer_model"
+    push!(constantspecies, "OXYGEN")
+end
 
 perturb_factor = parse(Float64, perturb_factor_string)
 
@@ -86,13 +94,29 @@ yvapn = zeros(length(trays), length(spcnames))
 yliqn = zeros(length(trays), length(spcnames))
 
 for (spcind, spcname) in enumerate(spcnames)
-    if spcname in majorspeciesnames
+    if spcname in constantspecies
         for tray in trays
             yvapn[tray, spcind] = aspen_initial_conditions["vapor_concentration"][spcname][tray] * Vvap
             yliqn[tray, spcind] = aspen_initial_conditions["liquid_concentration"][spcname][tray] * Vliq
             if spcname == perturb_species
                 yvapn[tray, spcind] *= perturb_factor
                 yliqn[tray, spcind] *= perturb_factor
+            end
+            if yvapn[tray ,spcind] < 0.0
+                yvapn[tray, spcind] = 0.0
+            end
+            if yliqn[tray, spcind] < 0.0
+                yliqn[tray, spcind] = 0.0
+            end
+        end
+    end
+end
+
+if model_name == "trace_oxygen_perturbed_debutanizer_model"
+    if perturb_factor_string == "0.0"
+        for spc in liqspcs
+            if occursin("O", spc.smiles) || occursin("o", spc.smiles)
+                push!(constantspecies, spc.name)
             end
         end
     end
@@ -133,11 +157,11 @@ end
 function T_reactor!(yvap0::Array{Float64,2}, yliq0::Array{Float64,2}, yvapf::Array{Float64,2}, yliqf::Array{Float64,2},
     shiftvectorvapn::Array{Float64,2}, shiftvectorliqn::Array{Float64,2}, kLAs::Array{Float64,2}, kHs::Array{Float64,2},
     t0::Float64, tf::Float64, aspen_initial_conditions::Dict{Any,Any}, Vvap::Float64, Vliq::Float64,
-    trays::UnitRange{Int64}, spcnames::Array{String,1}, majorspeciesnames::Array{String,1})
+    trays::UnitRange{Int64}, spcnames::Array{String,1}, constantspecies::Array{String,1})
     # solve for vap
     @threads for spcname in spcnames
         spcind = findfirst(isequal(spcname), spcnames)
-        if !(spcname in majorspeciesnames)
+        if !(spcname in constantspecies)
             y0 = vcat(yvap0[:, spcind], yliq0[:, spcind])
             @views kLAsspc = kLAs[:, spcind]
             @views kHsspc = kHs[:, spcind]
@@ -159,7 +183,7 @@ function T_reactor!(yvap0::Array{Float64,2}, yliq0::Array{Float64,2}, yvapf::Arr
     end
 end
 
-function solve_R_reactor_liq_tray(yliq0tray::AbstractArray, shiftvectorliqntray::AbstractArray, t0::Float64, tf::Float64, T::Float64, Vliq::Float64, trays::UnitRange{Int64}, spcnames::Array{String,1}, majorspeciesnames::Array{String,1})
+function solve_R_reactor_liq_tray(yliq0tray::AbstractArray, shiftvectorliqntray::AbstractArray, t0::Float64, tf::Float64, T::Float64, Vliq::Float64, trays::UnitRange{Int64}, spcnames::Array{String,1}, constantspecies::Array{String,1})
 
     # liquid
     initialconds = Dict(["T" => T, "V" => Vliq])
@@ -167,7 +191,7 @@ function solve_R_reactor_liq_tray(yliq0tray::AbstractArray, shiftvectorliqntray:
         initialconds[spcname] = yliq0tray[spcind]
     end
 
-    domain, y0, p = ConstantTVDomain(phase=liq, initialconds=initialconds, constantspecies=majorspeciesnames)
+    domain, y0, p = ConstantTVDomain(phase=liq, initialconds=initialconds, constantspecies=constantspecies)
 
     react = Reactor(domain, y0, (t0, tf), []; p=p, shiftvector=shiftvectorliqntray)
 
@@ -184,12 +208,12 @@ end
 function R_reactor!(yvap0::Array{Float64,2}, yliq0::Array{Float64,2}, yvapf::Array{Float64,2}, yliqf::Array{Float64,2},
     shiftvectorvapn::Array{Float64,2}, shiftvectorliqn::Array{Float64,2},
     t0::Float64, tf::Float64, aspen_initial_conditions::Dict{Any,Any}, Vvap::Float64, Vliq::Float64,
-    trays::UnitRange{Int64}, spcnames::Array{String,1}, majorspeciesnames::Array{String,1})
+    trays::UnitRange{Int64}, spcnames::Array{String,1}, constantspecies::Array{String,1})
     @threads for tray in trays
         @views yliq0tray = yliq0[tray, :]
         @views shiftvectorliqntray = shiftvectorliqn[tray, :]
         T = aspen_initial_conditions["T"][tray]
-        sol, domain, p = solve_R_reactor_liq_tray(yliq0tray, shiftvectorliqntray, t0, tf, T, Vliq, trays, spcnames, majorspeciesnames)
+        sol, domain, p = solve_R_reactor_liq_tray(yliq0tray, shiftvectorliqntray, t0, tf, T, Vliq, trays, spcnames, constantspecies)
         @views yliqf[tray, :] .= sol[end][domain.indexes[1]:domain.indexes[2]]
 
         @views shiftvectorvapntray = shiftvectorvapn[tray, :]
@@ -201,13 +225,13 @@ function R_reactor!(yvap0::Array{Float64,2}, yliq0::Array{Float64,2}, yvapf::Arr
     end
 end
 
-function save_rop(yliqn::Array{Float64,2}, shiftvectorliqn::Array{Float64,2}, t0::Float64, tf::Float64, aspen_initial_conditions::Dict{Any,Any}, Vvap::Float64, Vliq::Float64, kLAs::Array{Float64,2}, kHs::Array{Float64,2}, trays::UnitRange{Int64}, spcnames::Array{String,1}, majorspeciesnames::Array{String,1}, save_directiry::String)
+function save_rop(yliqn::Array{Float64,2}, shiftvectorliqn::Array{Float64,2}, t0::Float64, tf::Float64, aspen_initial_conditions::Dict{Any,Any}, Vvap::Float64, Vliq::Float64, kLAs::Array{Float64,2}, kHs::Array{Float64,2}, trays::UnitRange{Int64}, spcnames::Array{String,1}, constantspecies::Array{String,1}, save_directiry::String)
 
     for tray in trays
         @views yliq0tray = yliqn[tray, :]
         @views shiftvectorliqntray = shiftvectorliqn[tray, :]
         T = aspen_initial_conditions["T"][tray]
-        sol, domain, p = solve_R_reactor_liq_tray(yliq0tray, shiftvectorliqntray, t0, tf, T, Vliq, trays, spcnames, majorspeciesnames)
+        sol, domain, p = solve_R_reactor_liq_tray(yliq0tray, shiftvectorliqntray, t0, tf, T, Vliq, trays, spcnames, constantspecies)
         sim = Simulation(sol, domain, p)
         ropmat = rops(sim, sol.t[1])
         rxnind, spcind, rop = findnz(ropmat)
@@ -237,7 +261,7 @@ CSV.write("$(save_directiry)/simulation_vapor_liquid_yliqn_0.0.csv", df)
 println("Starting simulation...")
 for t in t0:delta_t:tf
 
-    @time T_reactor!(yvapn, yliqn, yvap1, yliq1, shiftvectorvapn, shiftvectorliqn, kLAs, kHs, t, t + delta_t / 2, aspen_initial_conditions, Vvap, Vliq, trays, spcnames, majorspeciesnames)
+    @time T_reactor!(yvapn, yliqn, yvap1, yliq1, shiftvectorvapn, shiftvectorliqn, kLAs, kHs, t, t + delta_t / 2, aspen_initial_conditions, Vvap, Vliq, trays, spcnames, constantspecies)
     vap_norm_1 = norm(abs.(yvap1 .- yvapn))
     liq_norm_1 = norm(abs.(yliq1 .- yliqn))
     println("vap_norm_1 = $(vap_norm_1)")
@@ -247,7 +271,7 @@ for t in t0:delta_t:tf
     # df = DataFrame(yliq1, spcnames)
     # CSV.write("$(save_directiry)/simulation_vapor_liquid_yliq1_$(t).csv",df)
 
-    @time R_reactor!(yvap1, yliq1, yvap2, yliq2, shiftvectorvapn, shiftvectorliqn, t, t + delta_t, aspen_initial_conditions, Vvap, Vliq, trays, spcnames, majorspeciesnames)
+    @time R_reactor!(yvap1, yliq1, yvap2, yliq2, shiftvectorvapn, shiftvectorliqn, t, t + delta_t, aspen_initial_conditions, Vvap, Vliq, trays, spcnames, constantspecies)
     vap_norm_2 = norm(abs.(yvap2 .- yvap1))
     liq_norm_2 = norm(abs.(yliq2 .- yliq1))
     println("vap_norm_2 = $(vap_norm_2)")
@@ -259,7 +283,7 @@ for t in t0:delta_t:tf
     # df = DataFrame(yliq2, spcnames)
     # CSV.write("$(save_directiry)/simulation_vapor_liquid_yliq2_$(t).csv",df)
 
-    @time T_reactor!(yvap2, yliq2, yvap3, yliq3, shiftvectorvapn, shiftvectorliqn, kLAs, kHs, t + delta_t / 2, t + delta_t, aspen_initial_conditions, Vvap, Vliq, trays, spcnames, majorspeciesnames)
+    @time T_reactor!(yvap2, yliq2, yvap3, yliq3, shiftvectorvapn, shiftvectorliqn, kLAs, kHs, t + delta_t / 2, t + delta_t, aspen_initial_conditions, Vvap, Vliq, trays, spcnames, constantspecies)
     vap_norm_3 = norm(abs.(yvap3 .- yvap2))
     liq_norm_3 = norm(abs.(yliq3 .- yliq2))
     println("vap_norm_3 = $(vap_norm_3)")
@@ -290,4 +314,4 @@ for t in t0:delta_t:tf
     println("liq_norm = $(liq_norm)")
 end
 
-@time save_rop(yliqn, shiftvectorliqn, tf, tf + delta_t, aspen_initial_conditions, Vvap, Vliq, kLAs, kHs, trays, spcnames, majorspeciesnames, save_directiry)
+@time save_rop(yliqn, shiftvectorliqn, tf, tf + delta_t, aspen_initial_conditions, Vvap, Vliq, kLAs, kHs, trays, spcnames, constantspecies, save_directiry)
