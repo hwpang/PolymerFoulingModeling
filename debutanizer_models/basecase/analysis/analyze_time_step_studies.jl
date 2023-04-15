@@ -3,10 +3,17 @@ using DataFrames
 using ReactionMechanismSimulator.PyPlot
 using ReactionMechanismSimulator.YAML
 
+rms_path = ARGS[1]
+model_name = ARGS[2]
+
 majorspeciesnames = ["N-BUTANE", "2-BUTENE", "1,3-BUTADIENE", "CYCLOPENTADIENE", "BENZENE", "1,3-CYCLOHEXADIENE", "TOLUENE", "STYRENE"]
-mech = YAML.load_file("/home/gridsan/hwpang/Software/PolymerFoulingModeling/debutanizer_models/basecase/liquid_mechanism/chem.rms")
+constantspecies = majorspeciesnames
+if model_name == "trace_oxygen_perturbed_debutanizer_model"
+    push!(constantspecies, "OXYGEN")
+end
+mech = YAML.load_file(rms_path)
 radicalspcnames = [spc["name"] for spc in mech["Phases"][1]["Species"] if spc["radicalelectrons"] != 0.0]
-minorspcnames = [spc["name"] for spc in mech["Phases"][1]["Species"] if !(spc["name"] in majorspeciesnames)]
+minorspcnames = [spc["name"] for spc in mech["Phases"][1]["Species"] if !(spc["name"] in constantspecies)]
 
 # +
 t0 = 0.0
@@ -24,10 +31,16 @@ Vliq = A * h
 yliqn_minorspc_dict = Dict()
 yliqn_radicalspc_dict = Dict()
 
+if model_name == "basecase_debutanizer_model"
+    simulation_folder = "1,3-BUTADIENE_1.0"
+elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+    simulation_folder = "OXYGEN_1.0"
+end
+
 for delta_t in delta_ts
     ts = t0:delta_t:tf+delta_t
     for t in ts
-        path = "../time_step_studies/simulation_results/1,3-BUTADIENE_1.0_3600.0_$(delta_t)/simulation_vapor_liquid_yliqn_$(t).csv"
+        path = "../time_step_studies/simulation_results/$(simulation_folder)_3600.0_$(delta_t)/simulation_vapor_liquid_yliqn_$(t).csv"
         if isfile(path)
             df = DataFrame(CSV.File(path))
             yliqn_minorspc_dict[delta_t, t] = sum(eachcol(df[!, minorspcnames]))
@@ -63,7 +76,7 @@ axs[end].legend(handles, labels)
 axs[2].set_ylabel("Minor species (mol/m^3)", fontsize=12)
 axs[3].set_xlabel("Time (sec)", fontsize=12)
 fig.tight_layout()
-fig.savefig("basecase_debutanizer_model_minor_species_steady_state.pdf", bbox_to_anchor="tight")
+fig.savefig("$(model_name)_minor_species_steady_state.pdf", bbox_to_anchor="tight")
 
 # +
 
@@ -93,7 +106,7 @@ axs[end].legend(handles, labels)
 axs[2].set_ylabel("Radical (mol/m^3)", fontsize=12)
 axs[3].set_xlabel("Time (sec)", fontsize=12)
 fig.tight_layout()
-fig.savefig("basecase_debutanizer_model_radical_steady_state.pdf", bbox_to_anchor="tight")
+fig.savefig("$(model_name)_radical_steady_state.pdf", bbox_to_anchor="tight")
 # -
 
 
