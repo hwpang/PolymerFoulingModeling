@@ -93,6 +93,15 @@ species(
 )
 """
 
+if model_name == "trace_oxygen_perturbed_debutanizer_model":
+    input_string += """
+species(
+    label='OXYGEN',
+    reactive=True,
+    structure=SMILES("[O][O]"),
+)
+"""
+
 reactor_string = """
 # tray {tray_number}
 constantTVLiquidReactor(
