@@ -121,7 +121,7 @@ if len(rms_rxns) != len(liqrxns):
 
 print("Rename species...")
 
-if model_name == "basecase_debutanizer_model":
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]:
     initial_monomer_labels = [
         "N-BUTANE",
         "2-BUTENE",
@@ -132,6 +132,8 @@ if model_name == "basecase_debutanizer_model":
         "TOLUENE",
         "STYRENE",
     ]
+    if model_name == "trace_oxygen_perturbed_debutanizer_model":
+        initial_monomer_labels.append("OXYGEN")
 elif model_name == "QCMD_cell_model":
     initial_monomer_labels = [
         "5-methylcyclohexadiene",
