@@ -240,6 +240,7 @@ model(
     branchingRatioMax=1.0,
     maxNumObjsPerIter=10,
     toleranceReactionToCoreDeadendRadical=0.01,
+    toleranceRadMoveToCore=0.01,
 )
 
 options(
