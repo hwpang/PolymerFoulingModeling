@@ -49,9 +49,14 @@ spcnames = [
     "STYRENE"
 ]
 
-if model_name == "trace_oxygen_perturbed_debutanizer_model"
+if model_name in ["trace_oxygen_perturbed_debutanizer_model", "DEHA_mitigated_debutanizer_model"]
     spcnamedict["OXYGEN"] = "OXYGEN"
     push!(spcnames,"OXYGEN")
+end
+
+if model_name in ["DEHA_mitigated_debutanizer_model"]
+    spcnamedict["DEHA"] = "DEHA"
+    push!(spcnames,"DEHA")
 end
 
 # %%
@@ -88,6 +93,8 @@ if model_name == "basecase_debutanizer_model"
     save_name = "aspen_conditions"
 elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
     save_name = "aspen_conditions_oxygen"
+elseif model_name == "DEHA_mitigated_debutanizer_model"
+    save_name = "aspen_conditions_oxygen_DEHA"
 end
 YAML.write_file("$save_name.yml", initial_conditions)
 
@@ -103,7 +110,7 @@ lines = ["-v", "-^", "-<", "->", "-1", "-2", "-3", "-4", "-8", "-s", "-p", "-P",
 
 if model_name == "basecase_debutanizer_model"
     fig,axs = subplots(nrows=4,ncols=2,figsize=(10,14))
-elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+elseif model_name in ["trace_oxygen_perturbed_debutanizer_model", "DEHA_mitigated_debutanizer_model"]
     fig,axs = subplots(nrows=5,ncols=2,figsize=(10,17))
 end
 
@@ -182,16 +189,22 @@ elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
 end
 
 if model_name == "trace_oxygen_perturbed_debutanizer_model"
-    spc = "OXYGEN"
-    i = findfirst(x->x==spc,spcnames)
-    label = spc
-    axs[5,1].plot(1:40,initial_conditions["liquid_concentration"][spc],lines[i],label=spc,color="C8")
+    spcs = ["OXYGEN"]
+    if model_name == "DEHA_mitigated_debutanizer_model"
+        push!(spcs,"DEHA")
+    end
+    for spc in spcs
+        i = findfirst(x->x==spc,spcnames)
+        label = spc
+        axs[5,1].plot(1:40,initial_conditions["liquid_concentration"][spc],lines[i],label=spc,color="C8")
+
+        axs[5,2].plot(1:40,initial_conditions["vapor_concentration"][spc],lines[i],label=spc,color="C8")
+    end
     axs[5,1].set_ylabel("Conc. (mol/m^3)",size=20)
     axs[5,1].set_title("(f) Liquid phase",loc="left",size=20)
     axs[5,1].set_xlabel("Tray",size=20)
     axs[5,1].set_yscale("log")
 
-    axs[5,2].plot(1:40,initial_conditions["vapor_concentration"][spc],lines[i],label=spc,color="C8")
     axs[5,2].set_title("(g) Vapor phase",loc="left",size=20)
     axs[5,2].set_xlabel("Tray",size=20)
     axs[5,2].set_yscale("log")
@@ -204,6 +217,8 @@ if model_name == "basecase_debutanizer_model"
     save_name = "monomer_conc_trays"
 elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
     save_name = "monomer_conc_trays_oxygen"
+elseif model_name == "DEHA_mitigated_debutanizer_model"
+    save_name = "monomer_conc_trays_oxygen_DEHA"
 end 
 savefig("$save_name.pdf",bbox_inches="tight")
 
