@@ -122,7 +122,7 @@ def generate_trimerization(spc_i, spc_j):
 # n_jobs = 4
 # model_name = "basecase_debutanizer_model"
 
-if model_name == "basecase_debutanizer_model":
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]:
     initial_monomer_labels = [
         "N-BUTANE",
         "2-BUTENE",
@@ -164,13 +164,18 @@ RXN_TYPES = [
     "R._Habs",
     "R._Recomb",
     "R._Disprop",
+    "R._CycEther",
     "ROO._Add",
     "ROO._Habs",
     "ROO._Recomb",
     "ROO._Disprop",
     "ROO._R._Habs",
     "ROO._eli",
-    "cyc_ether",
+    "RO._Add",
+    "RO._Habs",
+    "RO._Recomb",
+    "RO._Disprop",
+    "RO._CycEther",
     "diels_alder",
     "retroene",
 ]
@@ -179,7 +184,14 @@ ROO = Group().from_adjacency_list(
     """
 1  O u1 p2 c0 {2,S}
 2  O u0 p2 c0 {1,S} {3,S}
-3  R!H u0 p0 c0 {2,S}
+3  C u0 p0 c0 {2,S}
+"""
+)
+
+RO = Group().from_adjacency_list(
+    """
+1  O u1 p2 c0 {2,S}
+2  C u0 p0 c0 {1,S}
 """
 )
 
@@ -307,6 +319,7 @@ liqrxns = [item[1] for item in sorted(rms_idx_to_rxns.items(), key=lambda x: x[0
 print("Categorizing reactions...")
 Rs_id = []
 ROOs_id = []
+ROs_id = []
 
 # Find Rs and ROOs
 for i, spc in enumerate(liqspcs):
@@ -315,19 +328,23 @@ for i, spc in enumerate(liqspcs):
 
     if spc.molecule[0].is_subgraph_isomorphic(ROO):
         ROOs_id.append(i)
-    elif "C" in spc.smiles or "c" in spc.smiles:
+    elif spc.molecule[0].is_subgraph_isomorphic(RO):
+        ROs_id.append(i)
+    else:
         Rs_id.append(i)
 
 # %%
-def find_R_and_ROO(spc_list):
-    R, ROO = False, False
+def find_R_ROO_and_RO(spc_list):
+    R, ROO, RO = False, False, False
     for spc in spc_list:
         spc_id = spc_label_index_dict.get(spc.label)
         if spc_id in Rs_id:
             R = True
         elif spc_id in ROOs_id:
             ROO = True
-    return R, ROO
+        elif spc_id in ROs_id:
+            RO = True
+    return R, ROO, RO
 
 
 # %%
@@ -346,8 +363,8 @@ for i, rxn in enumerate(liqrxns):
         continue
 
     # Find if R or ROO in the reaction
-    r_in, roo_in = find_R_and_ROO(rxn.reactants + rxn.products)
-    if not r_in and not roo_in:
+    r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.reactants + rxn.products)
+    if not r_in and not roo_in and not ro_in:
         continue  # irrelavant reaction
 
     if rxn_family == "R_Recombination":
@@ -360,13 +377,15 @@ for i, rxn in enumerate(liqrxns):
                 print("Weird R_recombination with O2")
         else:
             if len(rxn.reactants) == 2:
-                r_in, roo_in = find_R_and_ROO(rxn.reactants)
+                r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.reactants)
             else:
-                r_in, roo_in = find_R_and_ROO(rxn.products)
+                r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.products)
             if r_in:
                 family_categories["R._Recomb"].append(i)
             if roo_in:
                 family_categories["ROO._Recomb"].append(i)
+            if ro_in:
+                family_categories["RO._Recomb"].append(i)
 
     elif rxn_family == "Disproportionation":
         has_O2 = any([spc.smiles == "[O][O]" for spc in rxn.reactants + rxn.products])
@@ -375,28 +394,35 @@ for i, rxn in enumerate(liqrxns):
                 family_categories["R._Disprop"].append(i)
             if roo_in:
                 family_categories["ROO._Disprop"].append(i)
+            if ro_in:
+                family_categories["RO._Disprop"].append(i)
 
     elif rxn_family == "H_Abstraction":
         if r_in:
             family_categories["R._Habs"].append(i)
-        elif roo_in:
+        if roo_in:
             family_categories["ROO._Habs"].append(i)
+        if ro_in:
+            family_categories["RO._Habs"].append(i)
 
     elif rxn_family == "R_Addition_MultipleBond":
         if len(rxn.reactants) == 2:
-            r_in, roo_in = find_R_and_ROO(rxn.reactants)
+            r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.reactants)
         else:
-            r_in, roo_in = find_R_and_ROO(rxn.products)
+            r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.products)
         if r_in:
             family_categories["R._Add"].append(i)
         if roo_in:
             family_categories["ROO._Add"].append(i)
+        if ro_in:
+            family_categories["RO._Add"].append(i)
 
     elif rxn_family == "HO2_Elimination_from_PeroxyRadical":
         family_categories["ROO._eli"].append(i)
 
     elif rxn_family == "Cyclic_Ether_Formation":
-        family_categories["cyc_ether"].append(i)
+        family_categories["R._CycEther"].append(i)
+        family_categories["RO._CycEther"].append(i)
 
 # %%
 rop_files = {}
@@ -409,7 +435,7 @@ print("loading all ROP results...")
 rop_matrix = {}
 conc = {}
 
-if model_name == "basecase_debutanizer_model":
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]:
     ss_mol_df = pd.read_csv(os.path.join(results_directory, SS_MOL_CSV))
 elif model_name == "QCMD_cell_model":
     ss_mol_df = pd.read_csv(os.path.join(results_directory, SS_MOL_CSV))
@@ -458,14 +484,19 @@ for family in family_categories.keys():
 
 rates["R._outlet"] = np.zeros_like(trays, dtype=float)
 rates["ROO._outlet"] = np.zeros_like(trays, dtype=float)
+rates["RO._outlet"] = np.zeros_like(trays, dtype=float)
 rates["R._evap"] = np.zeros_like(trays, dtype=float)
 rates["ROO._evap"] = np.zeros_like(trays, dtype=float)
+rates["RO._evap"] = np.zeros_like(trays, dtype=float)
 
 production_rates["R._inlet"] = np.zeros_like(trays, dtype=float)
 production_rates["ROO._inlet"] = np.zeros_like(trays, dtype=float)
+production_rates["RO._inlet"] = np.zeros_like(trays, dtype=float)
 production_rates["R._cond"] = np.zeros_like(trays, dtype=float)
 production_rates["ROO._cond"] = np.zeros_like(trays, dtype=float)
+production_rates["RO._cond"] = np.zeros_like(trays, dtype=float)
 production_rates["R._RevDisprop"] = np.zeros_like(trays, dtype=float)
+production_rates["RO._ROORDecomp"] = np.zeros_like(trays, dtype=float)
 
 for tray in trays:
     for family, rxn_indices in family_categories.items():
@@ -477,8 +508,8 @@ for tray in trays:
             rops = rop_matrix[tray][:, rxn_indices][ROOs_id, :]
             rops = rops[rops < 0]
             rates[family][tray] = np.sum(rops)
-        elif family == "cyc_ether":
-            rops = rop_matrix[tray][:, rxn_indices][Rs_id, :]
+        elif "RO." in family:
+            rops = rop_matrix[tray][:, rxn_indices][ROs_id, :]
             rops = rops[rops < 0]
             rates[family][tray] = np.sum(rops)
 
@@ -486,83 +517,54 @@ for tray in trays:
             rops = rop_matrix[tray][:, rxn_indices][Rs_id, :]
             rops = rops[rops > 0]
             production_rates["R._RevDisprop"][tray] = np.sum(rops)
+        elif family == "RO._Recomb":
+            rops = rop_matrix[tray][:, rxn_indices][ROs_id, :]
+            rops = rops[rops > 0]
+            production_rates["RO._ROORDecomp"][tray] = np.sum(rops)
 
     outlet_ind = source_label_index_dict["outlet"]
-    rates["R._outlet"][tray] = np.sum(rop_matrix[tray][Rs_id, outlet_ind])
-    rates["ROO._outlet"][tray] = np.sum(rop_matrix[tray][ROOs_id, outlet_ind])
+    rops = rop_matrix[tray][Rs_id, outlet_ind]
+    rops = rops[rops < 0]
+    rates["R._outlet"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROOs_id, outlet_ind]
+    rops = rops[rops < 0]
+    rates["ROO._outlet"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROs_id, outlet_ind]
+    rops = rops[rops < 0]
+    rates["RO._outlet"][tray] = np.sum(rops)
 
     evap_ind = source_label_index_dict["evap"]
-    rates["R._evap"][tray] = np.sum(rop_matrix[tray][Rs_id, evap_ind])
-    rates["ROO._evap"][tray] = np.sum(rop_matrix[tray][ROOs_id, evap_ind])
+    rops = rop_matrix[tray][Rs_id, evap_ind]
+    rops = rops[rops < 0]
+    rates["R._evap"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROOs_id, evap_ind]
+    rops = rops[rops < 0]
+    rates["ROO._evap"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROs_id, evap_ind]
+    rops = rops[rops < 0]
+    rates["RO._evap"][tray] = np.sum(rops)
 
     inlet_ind = source_label_index_dict["inlet"]
-    production_rates["R._inlet"][tray] = np.sum(rop_matrix[tray][Rs_id, inlet_ind])
-    production_rates["ROO._inlet"][tray] = np.sum(rop_matrix[tray][ROOs_id, inlet_ind])
+    rops = rop_matrix[tray][Rs_id, inlet_ind]
+    rops = rops[rops > 0]
+    production_rates["R._inlet"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROOs_id, inlet_ind]
+    rops = rops[rops > 0]
+    production_rates["ROO._inlet"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROs_id, inlet_ind]
+    rops = rops[rops > 0]
+    production_rates["RO._inlet"][tray] = np.sum(rops)
 
     cond_ind = source_label_index_dict["cond"]
-    production_rates["R._cond"][tray] = np.sum(rop_matrix[tray][Rs_id, cond_ind])
-    production_rates["ROO._cond"][tray] = np.sum(rop_matrix[tray][ROOs_id, cond_ind])
-
-# for tray in trays:
-#     for family, rxn_indices in family_categories.items():
-#         for rxn_index in rxn_indices:
-#             rop = rop_matrix[tray][:, rxn_index]
-#             rxn = liqrxns[rxn_index]
-#             spc = rxn.products[0]
-#             spc_index = spc_label_index_dict[spc.label]
-#             if family in ["R._Habs", "ROO._Habs", "ROO._R._Habs"]:
-#                 r_in_r, roo_in_r = find_R_and_ROO(rxn.reactants)
-#                 r_in_p, roo_in_p = find_R_and_ROO(rxn.products)
-#                 if family == "R._Habs":
-#                     if r_in_r and r_in_p:
-#                         rates[family][tray] += abs(rop[spc_index])
-#                     elif r_in_r and rop[spc_index] >= 0:
-#                         rates[family][tray] += rop[spc_index]
-#                     elif r_in_p and rop[spc_index] <= 0:
-#                         rates[family][tray] += abs(rop[spc_index])
-#                 elif family == "ROO._Habs":
-#                     if roo_in_r and roo_in_p:
-#                         rates[family][tray] += abs(rop[spc_index])
-#                     elif roo_in_r and rop[spc_index] >= 0:
-#                         rates[family][tray] += rop[spc_index]
-#                     elif roo_in_p and rop[spc_index] <= 0:
-#                         rates[family][tray] += abs(rop[spc_index])
-#                 else:
-#                     if r_in_r and rop[spc_index] > 0:
-#                         rates["R._Habs"][tray] += rop[spc_index]
-#                     elif r_in_r and rop[spc_index] <= 0:
-#                         rates["ROO._Habs"][tray] += abs(rop[spc_index])
-#                     elif roo_in_r and rop[spc_index] >= 0:
-#                         rates["ROO._Habs"][tray] += rop[spc_index]
-#                     else:
-#                         rates["R._Habs"][tray] += abs(rop[spc_index])
-#                 Habs[tray] += abs(rop[spc_index])
-#             elif family in "retroene" and rop[spc_index] < 0:
-#                 rates[family][tray] += abs(rop[spc_index])
-#             else:
-#                 if rop[spc_index] > 0:
-#                     rates[family][tray] += rop[spc_index]
-#                 if family == "R._Disprop":
-#                     if rop[spc_index] < 0:
-#                         production_rates[family][tray] += abs(rop[spc_index])
-
-#     outlet_ind = source_label_index_dict["outlet"]
-#     rates["R._outlet"][tray] += abs(sum(rop_matrix[tray][Rs_id, outlet_ind]))
-#     rates["ROO._outlet"][tray] += abs(sum(rop_matrix[tray][ROOs_id, outlet_ind]))
-
-#     evap_ind = source_label_index_dict["evap"]
-#     rates["R._evap"][tray] += abs(sum(rop_matrix[tray][Rs_id, evap_ind]))
-#     rates["ROO._evap"][tray] += abs(sum(rop_matrix[tray][ROOs_id, evap_ind]))
-
-#     inlet_ind = source_label_index_dict["inlet"]
-#     production_rates["R._inlet"][tray] += abs(sum(rop_matrix[tray][Rs_id, inlet_ind]))
-#     production_rates["ROO._inlet"][tray] += abs(
-#         sum(rop_matrix[tray][ROOs_id, inlet_ind])
-#     )
-
-#     cond_ind = source_label_index_dict["cond"]
-#     production_rates["R._cond"][tray] += abs(sum(rop_matrix[tray][Rs_id, cond_ind]))
-#     production_rates["ROO._cond"][tray] += abs(sum(rop_matrix[tray][ROOs_id, cond_ind]))
+    rops = rop_matrix[tray][Rs_id, cond_ind]
+    rops = rops[rops > 0]
+    production_rates["R._cond"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROOs_id, cond_ind]
+    rops = rops[rops > 0]
+    production_rates["ROO._cond"][tray] = np.sum(rops)
+    rops = rop_matrix[tray][ROs_id, cond_ind]
+    rops = rops[rops > 0]
+    production_rates["RO._cond"][tray] = np.sum(rops)
 
 # %%
 ####### Calculate alphas ########
@@ -574,7 +576,7 @@ alpha1 = (rates["R._Add"] + rates["R.+O2"]) / (
     + rates["R._Habs"]
     + rates["R._Recomb"]
     + rates["R._Disprop"]
-    + rates["cyc_ether"]
+    + rates["R._CycEther"]
 )
 alpha2 = (rates["ROO._Add"]) / (
     rates["ROO._Add"]
@@ -722,74 +724,3 @@ with open(os.path.join(results_directory, "alpha_rates.yml"), "w+") as f:
         ],
         f,
     )
-
-# os.makedirs(os.path.join(results_directory, 'Figures'), exist_ok=True)
-
-# ############# weight distribution ##########
-# plt.figure()
-# cmap = plt.get_cmap('magma')
-# colors = [cmap(i) for i in np.linspace(0, 1, len(trays))][::-1]
-# for tray in trays:
-#     n = np.arange(1, 100, 1)
-#     plt.plot(n, Wn(n, alphas[tray]), color=colors[tray], label=f"tray={tray+1}")
-# plt.ylabel("Product Weight Fraction")
-# plt.xlabel("n")
-# plt.legend(loc='center left', bbox_to_anchor=(1.05,0.5), ncol=2,)
-# plt.xlim(0,20)
-# plt.savefig(os.path.join(results_directory, 'Figures', 'weight_dist.png'), dpi=300,
-#             facecolor='w', edgecolor='w', transparent=True, bbox_inches='tight')
-
-# ############## H_abstraction ##########
-
-# fig, axes = plt.subplots(1,2, figsize=(12,5))
-# axes[0].plot(Habs, label='total absolut Habs')
-# axes[0].plot(rates['R._Habs'], label='R Habs')
-# axes[0].plot(rates['ROO._Habs'], label='ROO Habs')
-# axes[0].legend()
-# axes[0].set_yscale('log')
-
-# axes[1].plot(rates['R._Habs']/Habs, label='R Habs')
-# axes[1].plot(rates['ROO._Habs']/Habs, label='ROO Habs')
-# axes[1].plot((rates['ROO._Habs'] + rates['R._Habs'])/Habs, label='total')
-# axes[1].legend()
-# axes[1].set_yscale('log')
-# plt.savefig(os.path.join(results_directory, 'Figures', 'Habs_contribution.png'), dpi=300,
-#             facecolor='w', edgecolor='w', transparent=True, bbox_inches='tight')
-
-# ############ Term of R ##################
-# plt.figure()
-# plt.plot(rates['R._Add'] + rates['R.+O2'], label='R add / R+O2')
-# plt.plot(rates['R._outlet'], label='outlet')
-# plt.plot(rates['R._Habs']  + rates['cyc_ether'], label='Habs + cyclic ether form')
-# plt.plot(rates['R._Recomb'] + rates['R._Disprop'], label='Recomb + disprop')
-# plt.yscale('log')
-# plt.title('Terms of R')
-# plt.legend()
-# plt.savefig(os.path.join(results_directory, 'Figures', 'Term_R.png'), dpi=300,
-#             facecolor='w', edgecolor='w', transparent=True, bbox_inches='tight')
-
-# ############# Term of ROO. ###############
-# plt.figure()
-# plt.plot(rates['ROO._Add'], label='ROO add')
-# plt.plot(rates['ROO._outlet'], label='outlet')
-# plt.plot(rates['ROO._Habs'] + rates['ROO._eli'], label='Habs + HO2 elimination')
-# plt.plot(rates['ROO._Recomb'] + rates['ROO._Disprop'], label='Recomb + disprop ')
-# plt.yscale('log')
-# plt.title('Terms of ROO')
-# plt.legend()
-# plt.savefig(os.path.join(results_directory, 'Figures', 'Term_ROO.png'), dpi=300,
-#             facecolor='w', edgecolor='w', transparent=True, bbox_inches='tight')
-
-# ############## alphas ##############
-# plt.figure()
-# plt.plot(alphas, label='alpha')
-# plt.plot(alpha1, label='alpha1')
-# plt.plot(alpha2, label='alpha2')
-# plt.legend()
-# plt.savefig(os.path.join(results_directory, 'Figures', 'alpha.png'), dpi=300,
-#             facecolor='w', edgecolor='w', transparent=True, bbox_inches='tight')
-
-# %%
-rates
-
-# %%
