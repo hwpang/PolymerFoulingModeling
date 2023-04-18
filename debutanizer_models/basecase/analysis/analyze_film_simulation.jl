@@ -15,13 +15,14 @@ merge!(rcParams, font0)
 # model = "QCMD_cell_model"
 # model = "basecase_debutanizer_model"
 model = ARGS[1]
+liquid_rms_path = ARGS[2]
 
 function load_film_simulations(perturb_species_list, perturb_factor_list, trays; asymptotic=false)
     film_simulations = Dict()
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
             film_simulations[perturb_species, perturb_factor] = Dict()
-            if model == "basecase_debutanizer_model"
+            if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
             elseif model == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
@@ -45,7 +46,7 @@ function load_film_rops(perturb_species_list, perturb_factor_list, trays)
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
             film_rops[perturb_species, perturb_factor] = Dict()
-            if model == "basecase_debutanizer_model"
+            if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
             elseif model == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
@@ -111,7 +112,7 @@ function calculate_fragment_per_mass(name, df)
     return df[end, name] / mass
 end
 
-if model == "basecase_debutanizer_model"
+if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
 
     d = 2.5
     h = 0.3
@@ -128,13 +129,20 @@ if model == "basecase_debutanizer_model"
     tf0 = 3600 * 24 * 365 * 200
     tf = 3600 * 24 * 365
     trays = 1:40
+    selected_trays = [1, 5, 10, 15, 20, 25, 30, 35, 40]
 
-    perturb_species_list = ["1,3-BUTADIENE", "CYCLOPENTADIENE"]
-    perturb_factor_list = ["0.5", "0.7", "0.9", "1.0", "1.1", "1.3", "1.5", "1.7", "1.9"]
+    if model_name == "basecase_debutanizer_model"
+        perturb_species_list = ["1,3-BUTADIENE", "CYCLOPENTADIENE"]
+        perturb_factor_list = ["0.5", "0.7", "0.9", "1.0", "1.1", "1.3", "1.5", "1.7", "1.9"]
+        perturb_species = "1,3-BUTADIENE"
+        perturb_factor = "1.0"
+    elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+        perturb_species_list = ["OXYGEN"]
+        perturb_factor_list = ["0.0", "1e-6", "1e-5", "1e-4", "1e-3", "1e-2", "1e-1", "1e0"]
+        perturb_species = "OXYGEN"
+        perturb_factor = "1e0"
+    end
     factor_num_list = [parse(Float64, perturb_factor) for perturb_factor in perturb_factor_list]
-
-    perturb_species = "1,3-BUTADIENE"
-    perturb_factor = "1.0"
 
     factorcmap = get_cmap(:PuRd)
 
@@ -143,11 +151,19 @@ if model == "basecase_debutanizer_model"
 
     film_simulations = load_film_simulations([perturb_species], [perturb_factor], trays; asymptotic=true)
 
-    selected_trays = trays
-    selected_fragments = ["AR", "KR", "CDB", "AH"]
+    if model_name == "basecase_debutanizer_model"
+        selected_fragments = ["AR", "KR", "CDB", "AH"]
+    elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+        selected_fragments = ["AR", "KR", "CDB", "AH", "CP", "HP", "PR", "OR"]
+    end
     nrows = length(selected_fragments)
     ncols = 1
-    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 6), sharex=true)
+    if model_name == "basecase_debutanizer_model"
+        figsize = (6, 6)
+    elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+        figsize = (6, 12)
+    end
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize, sharex=true)
 
     cmap = get_cmap(:RdPu)
     for (fragment_ind, fragment) in enumerate(selected_fragments)
@@ -163,7 +179,7 @@ if model == "basecase_debutanizer_model"
     axs[end].set_xlabel("Time (year)")
 
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_film_asymptotic.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_film_asymptotic.pdf", bbox_inches="tight")
     plt.close()
 
     ########## plot real simulation
@@ -173,7 +189,6 @@ if model == "basecase_debutanizer_model"
 
     # plot mass rop
 
-    selected_trays = [1, 5, 10, 15, 20, 25, 30, 35, 40]
     nrows = length(selected_trays)
     ncols = 1
 
@@ -196,7 +211,7 @@ if model == "basecase_debutanizer_model"
 
     axs[end, 1].set_xlabel("Rate of film growth (kg/s)")
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_film_rop_mass.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_film_rop_mass.pdf", bbox_inches="tight")
     plt.close()
 
     # plot AR rop
@@ -218,7 +233,7 @@ if model == "basecase_debutanizer_model"
 
     axs[end, 1].set_xlabel("ROP of AR (mol/s)")
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_film_rop_AR.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_film_rop_AR.pdf", bbox_inches="tight")
     plt.close()
 
     # plot AR rop loss
@@ -241,7 +256,7 @@ if model == "basecase_debutanizer_model"
 
     axs[end, 1].set_xlabel("Rate of AR loss (mol/s)")
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_film_rop_AR_loss.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_film_rop_AR_loss.pdf", bbox_inches="tight")
     plt.close()
 
     # plot KR rop
@@ -263,7 +278,7 @@ if model == "basecase_debutanizer_model"
 
     axs[end, 1].set_xlabel("ROP of KR (mol/s)")
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_film_rop_KR.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_film_rop_KR.pdf", bbox_inches="tight")
     plt.close()
 
     # plot KR rop loss
@@ -286,7 +301,7 @@ if model == "basecase_debutanizer_model"
 
     axs[end, 1].set_xlabel("Rate of KR loss (mol/s)")
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_film_rop_KR_loss.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_film_rop_KR_loss.pdf", bbox_inches="tight")
     plt.close()
 
     # plot simulation results
@@ -311,45 +326,11 @@ if model == "basecase_debutanizer_model"
         return chem_contributions_dict, normalized_chem_contributions_dict
     end
 
-    film_simulations = load_film_simulations([perturb_species], [perturb_factor], trays)
-
-    s = 15
-    nrows = 1
-    ncols = 3
-    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 3.5), sharex=true)
-    for label in ["AR", "KR", "CDB", "AH"]
-        axs[1].scatter(trays, [calculate_fragment_per_mass(label, film_simulations[perturb_species, perturb_factor][tray]) for tray in trays], label=label, s=s)
-    end
-    axs[1].set_xlabel("Tray")
-    axs[1].set_ylabel("Fragments/mass (mol/kg)")
-    axs[1].set_yscale("log")
-    axs[1].set_title("(a)", loc="left")
-    axs[1].legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.3),)
-
-    axs[2].scatter(trays, [calculate_film_growth_time_constant(film_simulations[perturb_species, perturb_factor][tray]) for tray in trays], s=s)
-    axs[2].set_xlabel("Tray")
-    axs[2].set_ylabel("Film growth " * L"\tau" * " (yr)")
-    axs[2].set_yscale("log")
-    axs[2].set_ylim([1e0, 1e2])
-    axs[2].set_title("(b)", loc="left")
-
-    local chem_contributions_dict, normalized_chem_contributions_dict = calculate_film_chemistry_contribution(film_rops[perturb_species, perturb_factor])
-    for (chem, ratios) in normalized_chem_contributions_dict
-        axs[3].scatter(trays, ratios, label=chem, s=s)
-    end
-    axs[3].set_xlabel("Tray")
-    axs[3].set_ylabel("Film growth\ncontribution (%)")
-    axs[3].set_title("(c)", loc="left")
-    axs[3].legend(loc="upper center", bbox_to_anchor=(0.5, -0.3))
-
-    fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_film_all.pdf", bbox_inches="tight")
-    plt.close()
-
     # plot sensitivity to monomer perturbation
 
-    liquid_mech = YAML.load_file("/home/gridsan/hwpang/Software/PolymerFoulingModeling/debutanizer_models/basecase/liquid_mechanism/chem.rms")
-    liquid_radical_names = [spc["name"] for spc in liquid_mech["Phases"][1]["Species"] if spc["radicalelectrons"] > 0]
+    liquid_mech = YAML.load_file(liquid_rms_path)
+    liquid_carbon_center_radical_names = [spc["name"] for spc in liquid_mech["Phases"][1]["Species"] if spc["radicalelectrons"] ==1 && (occursin("[C", spc["smiles"]) || occursin("[c", spc["smiles"]))]
+    liquid_peroxyl_radical_names = [spc["name"] for spc in liquid_mech["Phases"][1]["Species"] if spc["radicalelectrons"] ==1 && occursin("[O", spc["smiles"])]
 
     film_simulations = load_film_simulations(perturb_species_list, perturb_factor_list, trays)
 
@@ -371,52 +352,105 @@ if model == "basecase_debutanizer_model"
         return sum([df[tray, radical] for radical in liquid_radical_names]) / Vliq
     end
 
-    nrows = 4
-    ncols = length(perturb_species_list)
+    if model_name == "basecase_debutanizer_model"
+        nrows = 4
+        ncols = length(perturb_species_list)
+    elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+        nrows = 4
+        ncols = 2
+    end
+
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 8), sharex=true, sharey="row")
     for (species_ind, perturb_species) in enumerate(perturb_species_list)
         for (factor_ind, perturb_factor) in enumerate(perturb_factor_list)
-            liquid_radical_concs = [calculate_liquid_radical_concentration(vapor_liquid_simulations[perturb_species, perturb_factor], tray, liquid_radical_names) for tray in trays]
-            axs[1, species_ind].scatter(trays, liquid_radical_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
-            axs[1, species_ind].set_yscale("log")
-            # axs[1,species_ind].set_ylim([1e-11,1e-5])
+            if model_name == "basecase_debutanizer_model"
+                ax = axs[1, species_ind]
+            elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+                ax = axs[1, 1]
+            end
+            liquid_carbon_center_radical_concs = [calculate_liquid_radical_concentration(vapor_liquid_simulations[perturb_species, perturb_factor], tray, liquid_carbon_center_radical_names) for tray in trays]
+            ax.scatter(trays, liquid_radical_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
+            ax.set_yscale("log")
+            
+            if model_name == "trace_oxygen_perturbed_debutanizer_model"
+                ax = axs[1, 2]
+                liquid_peroxyl_radical_concs = [calculate_liquid_radical_concentration(vapor_liquid_simulations[perturb_species, perturb_factor], tray, liquid_peroxyl_radical_names) for tray in trays]
+                ax.scatter(trays, liquid_peroxyl_radical_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
+                ax.set_yscale("log")
+            end
 
+            if model_name == "basecase_debutanizer_model"
+                ax = axs[2, species_ind]
+            elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+                ax = axs[2, 1]
+            end
             local film_growth_time_constants = [calculate_film_growth_time_constant(film_simulations[perturb_species, perturb_factor][tray]) for tray in trays]
-            axs[2, species_ind].scatter(trays, film_growth_time_constants, color=factorcmap(factor_ind / length(perturb_factor_list)))
-            axs[2, species_ind].set_yscale("log")
-            # axs[2,species_ind].set_ylim([1e0,2e3])
+            ax.scatter(trays, film_growth_time_constants, color=factorcmap(factor_ind / length(perturb_factor_list)))
+            ax.set_yscale("log")
 
+            if model_name == "basecase_debutanizer_model"
+                ax = axs[3, species_ind]
+            elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+                ax = axs[3, 1]
+            end
             AR_concs = [calculate_fragment_per_mass("AR", film_simulations[perturb_species, perturb_factor][tray]) for tray in trays]
-            axs[3, species_ind].scatter(trays, AR_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
-            axs[3, species_ind].set_yscale("log")
+            ax.scatter(trays, AR_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
+            ax.set_yscale("log")
 
+            if model_name == "basecase_debutanizer_model"
+                ax = axs[4, species_ind]
+            elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+                ax = axs[4, 1]
+            end
             KR_concs = [calculate_fragment_per_mass("KR", film_simulations[perturb_species, perturb_factor][tray]) for tray in trays]
-            axs[4, species_ind].scatter(trays, KR_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
-            axs[4, species_ind].set_yscale("log")
+            ax.scatter(trays, KR_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
+            ax.set_yscale("log")
 
+            if model_name == "trace_oxygen_perturbed_debutanizer_model"
+                ax = axs[3, 2]
+                PR_concs = [calculate_fragment_per_mass("PR", film_simulations[perturb_species, perturb_factor][tray]) for tray in trays]
+                ax.scatter(trays, PR_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
+                ax.set_yscale("log")
+
+                ax = axs[4, 2]
+                OR_concs = [calculate_fragment_per_mass("OR", film_simulations[perturb_species, perturb_factor][tray]) for tray in trays]
+                ax.scatter(trays, OR_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
+                ax.set_yscale("log")
+            end
         end
     end
 
-    axs[1, 1].set_ylabel("R.(L) (mol/m³)")
-    axs[2, 1].set_ylabel("Film growth " * L"\tau" * " (yr)")
-    axs[3, 1].set_ylabel("AR/mass (mol/kg)")
-    axs[4, 1].set_ylabel("KR/mass (mol/kg)")
+    if model_name == "basecase_debutanizer_model"
+        axs[1, 1].set_ylabel("R.(L) (mol/m³)")
+        axs[2, 1].set_ylabel("Film growth " * L"\tau" * " (yr)")
+        axs[3, 1].set_ylabel("AR/mass (mol/kg)")
+        axs[4, 1].set_ylabel("KR/mass (mol/kg)")
+    elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+        axs[1, 1].set_ylabel("RC.(L) (mol/m³)")
+        axs[1, 2].set_ylabel("ROO.(L) (mol/m³)")
+        axs[2, 1].set_ylabel("Film growth " * L"\tau" * " (yr)")
+        axs[3, 1].set_ylabel("AR/mass (mol/kg)")
+        axs[4, 1].set_ylabel("KR/mass (mol/kg)")
+        axs[3, 2].set_ylabel("PR/mass (mol/kg)")
+        axs[4, 2].set_ylabel("OR/mass (mol/kg)")
+    end
 
-    for (species_ind, perturb_species) in enumerate(perturb_species_list)
-        axs[1, species_ind].set_title(perturb_species)
-        axs[4, species_ind].set_xlabel("Trays")
+    if model_name == "basecase_debutanizer_model"
+        for (species_ind, perturb_species) in enumerate(perturb_species_list)
+            axs[1, species_ind].set_title(perturb_species)
+            axs[4, species_ind].set_xlabel("Trays")
+        end
+    elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+        axs[4, 1].set_xlabel("Trays")
+        axs[4, 2].set_xlabel("Trays")
     end
 
     cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
     sm = plt.cm.ScalarMappable(cmap=:RdPu, norm=plt.Normalize(vmin=0.5, vmax=1.9))
     cbar = fig.colorbar(sm, ticks=factor_num_list, orientation="vertical", label="Perturbation", cax=cbar_ax)
 
-    # fig.add_subplot(111, frameon=false)
-    # plt.tick_params(labelcolor="none", which="both", top=false, bottom=false, left=false, right=false)
-    # plt.xlabel("Tray", fontsize=14)
-
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_sens_all.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_sens_all.pdf", bbox_inches="tight")
     plt.close()
 
     # plot chemistry contribution
@@ -425,7 +459,7 @@ if model == "basecase_debutanizer_model"
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
             film_rops[perturb_species, perturb_factor] = Dict()
-            if model == "basecase_debutanizer_model"
+            if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
             elseif model == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
@@ -476,7 +510,7 @@ if model == "basecase_debutanizer_model"
     cbar = fig.colorbar(sm, ticks=[], orientation="vertical", label="radical addition", cax=cbar_ax)
 
     fig.tight_layout()
-    fig.savefig("basecase_debutanizer_model_sens_chem_contribution.pdf", bbox_inches="tight")
+    fig.savefig("$(model_name)_sens_chem_contribution.pdf", bbox_inches="tight")
     plt.close()
 
 elseif model == "QCMD_cell_model"
