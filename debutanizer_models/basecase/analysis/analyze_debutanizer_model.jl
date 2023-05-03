@@ -14,7 +14,11 @@ merge!(rcParams, font0)
 
 rms_path = ARGS[1]
 model_name = ARGS[2]
-delta_t = parse(Float64, ARGS[3])
+if model_name == "basecase_debutanizer_model"
+    delta_t = 64.0
+elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+    delta_t = parse(Float64, ARGS[3])
+end
 
 println("Loading RMS model...")
 mech = YAML.load_file(rms_path)
