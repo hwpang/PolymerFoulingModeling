@@ -39,7 +39,8 @@ do
     perturb_species=${job[0]}
     perturb_factor=${job[1]}
     start=`date +%s`
-    liquid_simulation_results_directory="./simulation_results/${perturb_species}_${perturb_factor}_3600.0_32.0"
+    time_step=32.0
+    liquid_simulation_results_directory="./simulation_results/${perturb_species}_${perturb_factor}_3600.0_${time_step}"
     python-jl $PFM_PATH/debutanizer_models/basecase/ASF_distribution/get_alpha_for_ASF_distribution.py \
                 --chemkin_path $chemkin_path \
                 --species_dict_path $species_dict_path \
@@ -47,7 +48,8 @@ do
                 --aspen_condition_path $aspen_condition_path \
                 --results_directory $liquid_simulation_results_directory \
                 --n_jobs 12 \
-                --model_name $model_name
+                --model_name $model_name \
+                --time_step $time_step
     end=`date +%s`
     runtime=$((end-start))
     echo "runtime: $runtime"
