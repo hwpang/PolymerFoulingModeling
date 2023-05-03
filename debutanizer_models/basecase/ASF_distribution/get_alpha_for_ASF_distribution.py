@@ -433,7 +433,7 @@ for i, rxn in enumerate(liqrxns):
 
     elif rxn_family == "Cyclic_Ether_Formation":
         family_categories["R._CycEther"].append(i)
-        family_categories["RO.CycEther"].append(i)
+        family_categories["RO._CycEther"].append(i)
 
 # %%
 rop_files = {}
