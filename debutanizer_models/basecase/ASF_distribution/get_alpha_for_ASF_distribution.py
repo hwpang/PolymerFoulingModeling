@@ -341,7 +341,7 @@ for i, spc in enumerate(liqspcs):
         ROOs_id.append(i)
     elif spc.molecule[0].is_subgraph_isomorphic(RO):
         ROs_id.append(i)
-    else:
+    elif "C" in spc.smiles or "c" in spc.smiles:
         Rs_id.append(i)
 
 # %%
