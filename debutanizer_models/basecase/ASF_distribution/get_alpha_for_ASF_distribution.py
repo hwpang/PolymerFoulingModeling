@@ -153,7 +153,7 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
     trays = np.arange(0, 40, 1)
     ROP_CSV = r"^simulation_vapor_liquid_liqrop_(\d+).csv"
     
-    tf = np.range(0.0, 3600.0+time_step, time_step)[-1]
+    tf = np.arange(0.0, 3600.0+time_step, time_step)[-1]
     SS_MOL_CSV = f"simulation_vapor_liquid_yvapn_{tf}.csv"
 elif model_name == "QCMD_cell_model":
     initial_monomer_labels = [
