@@ -132,11 +132,18 @@ carboncenterradicalreactiontray = rates["R._Add"] + rates["R._Habs"] + rates["R.
 if model_name == "trace_oxygen_perturbed_debutanizer_model"
     carboncenterradicalreactiontray += rates["R.+O2"] + rates["R._CycEther"]
 
-    peroxylradicalmoltray = sum(mol[mol .> 0.0] for mol in eachcol(liquid_mols[perturbed_target, perturbed_factor][!, peroxylradicalspcnames]))
+    peroxylradicalmoltray = zeros(40)
+    for (i, mols) in enumerate(eachcol(liquid_mols[perturbed_target, perturbed_factor][!, peroxylradicalspcnames]))
+        peroxylradicalmoltray[i] = sum(mols[mols .> 0.0])
+    end
+
     peroxylradicaloutlettray = rates["ROO._outlet"] + rates["ROO._evap"]
     peroxylradicalreactiontray = rates["ROO._Add"] + rates["ROO._Habs"] + rates["ROO._Recomb"] + rates["ROO._Disprop"] + rates["ROO._eli"]
 
-    alkoxylradicalmoltray = sum(mol[mol .> 0.0] for mol in eachcol(liquid_mols[perturbed_target, perturbed_factor][!, alkoxylradicalspcnames]))
+    alkoxylradicalmoltray = zeros(40)
+    for (i, mols) in enumerate(eachcol(liquid_mols[perturbed_target, perturbed_factor][!, alkoxylradicalspcnames]))
+        alkoxylradicalmoltray[i] = sum(mols[mols .> 0.0])
+    end
     alkoxylradicaloutlettray = rates["RO._outlet"] + rates["RO._evap"]
     alkoxylradicalreactiontray = rates["RO._Add"] + rates["RO._Habs"] + rates["RO._Recomb"] + rates["RO._Disprop"] + rates["RO._CycEther"]
 end
