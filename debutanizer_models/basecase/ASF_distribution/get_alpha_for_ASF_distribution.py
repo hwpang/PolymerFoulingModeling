@@ -411,9 +411,9 @@ for i, rxn in enumerate(liqrxns):
     elif rxn_family == "H_Abstraction":
         if r_in:
             family_categories["R._Habs"].append(i)
-        elif roo_in:
+        if roo_in:
             family_categories["ROO._Habs"].append(i)
-        elif ro_in:
+        if ro_in:
             family_categories["RO._Habs"].append(i)
 
     elif rxn_family == "R_Addition_MultipleBond":
