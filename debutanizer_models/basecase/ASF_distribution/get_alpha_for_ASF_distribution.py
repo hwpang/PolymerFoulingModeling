@@ -385,7 +385,8 @@ for i, rxn in enumerate(liqrxns):
             if r_in and roo_in:
                 family_categories["R.+O2"].append(i)
             else:
-                print("Weird R_recombination with O2")
+                pass
+                # print("Weird R_recombination with O2")
         else:
             if len(rxn.reactants) == 2:
                 r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.reactants)
