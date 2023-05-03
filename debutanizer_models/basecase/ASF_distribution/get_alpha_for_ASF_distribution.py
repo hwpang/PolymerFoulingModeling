@@ -345,15 +345,17 @@ for i, spc in enumerate(liqspcs):
         Rs_id.append(i)
 
 # %%
-def find_R_and_ROO(spc_list):
-    R, ROO = False, False
+def find_R_ROO_and_RO(spc_list):
+    R, ROO, RO = False, False, False
     for spc in spc_list:
         spc_id = spc_label_index_dict.get(spc.label)
         if spc_id in Rs_id:
             R = True
         elif spc_id in ROOs_id:
             ROO = True
-    return R, ROO
+        elif spc_id in ROs_id:
+            RO = True
+    return R, ROO, RO
 
 
 # %%
@@ -372,8 +374,8 @@ for i, rxn in enumerate(liqrxns):
         continue
 
     # Find if R or ROO in the reaction
-    r_in, roo_in = find_R_and_ROO(rxn.reactants + rxn.products)
-    if not r_in and not roo_in:
+    r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.reactants + rxn.products)
+    if not r_in and not roo_in and not ro_in:
         continue  # irrelavant reaction
 
     if rxn_family == "R_Recombination":
@@ -384,16 +386,17 @@ for i, rxn in enumerate(liqrxns):
                 family_categories["R.+O2"].append(i)
             else:
                 pass
-                # print("Weird R_recombination with O2")
         else:
             if len(rxn.reactants) == 2:
-                r_in, roo_in = find_R_and_ROO(rxn.reactants)
+                r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.reactants)
             else:
-                r_in, roo_in = find_R_and_ROO(rxn.products)
+                r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.products)
             if r_in:
                 family_categories["R._Recomb"].append(i)
             if roo_in:
                 family_categories["ROO._Recomb"].append(i)
+            if ro_in:
+                family_categories["RO._Recomb"].append(i)
 
     elif rxn_family == "Disproportionation":
         has_O2 = any([spc.smiles == "[O][O]" for spc in rxn.reactants + rxn.products])
@@ -402,28 +405,35 @@ for i, rxn in enumerate(liqrxns):
                 family_categories["R._Disprop"].append(i)
             if roo_in:
                 family_categories["ROO._Disprop"].append(i)
+            if ro_in:
+                family_categories["RO._Disprop"].append(i)
 
     elif rxn_family == "H_Abstraction":
         if r_in:
             family_categories["R._Habs"].append(i)
         elif roo_in:
             family_categories["ROO._Habs"].append(i)
+        elif ro_in:
+            family_categories["RO._Habs"].append(i)
 
     elif rxn_family == "R_Addition_MultipleBond":
         if len(rxn.reactants) == 2:
-            r_in, roo_in = find_R_and_ROO(rxn.reactants)
+            r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.reactants)
         else:
-            r_in, roo_in = find_R_and_ROO(rxn.products)
+            r_in, roo_in, ro_in = find_R_ROO_and_RO(rxn.products)
         if r_in:
             family_categories["R._Add"].append(i)
         if roo_in:
             family_categories["ROO._Add"].append(i)
+        if ro_in:
+            family_categories["RO._Add"].append(i)
 
     elif rxn_family == "HO2_Elimination_from_PeroxyRadical":
         family_categories["ROO._eli"].append(i)
 
     elif rxn_family == "Cyclic_Ether_Formation":
         family_categories["R._CycEther"].append(i)
+        family_categories["RO.CycEther"].append(i)
 
 # %%
 rop_files = {}
@@ -497,7 +507,7 @@ production_rates["R._cond"] = np.zeros_like(trays, dtype=float)
 production_rates["ROO._cond"] = np.zeros_like(trays, dtype=float)
 production_rates["RO._cond"] = np.zeros_like(trays, dtype=float)
 production_rates["R._RevDisprop"] = np.zeros_like(trays, dtype=float)
-production_rates["RO._ROORDecomp"] = np.zeros_like(trays, dtype=float)
+production_rates["RO._BondDiss"] = np.zeros_like(trays, dtype=float)
 
 for tray in trays:
     for family, rxn_indices in family_categories.items():
@@ -521,7 +531,7 @@ for tray in trays:
         elif family == "RO._Recomb":
             rops = rop_matrix[tray][:, rxn_indices][ROs_id, :]
             rops = rops[rops > 0]
-            production_rates["RO._ROORDecomp"][tray] = np.sum(rops)
+            production_rates["RO._BondDiss"][tray] = np.sum(rops)
 
     outlet_ind = source_label_index_dict["outlet"]
     rops = rop_matrix[tray][Rs_id, outlet_ind]
