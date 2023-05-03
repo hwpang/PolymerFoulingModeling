@@ -12,19 +12,24 @@ font0 = Dict(
 )
 merge!(rcParams, font0)
 
-# model = "QCMD_cell_model"
-# model = "basecase_debutanizer_model"
-model = ARGS[1]
+# model_name = "QCMD_cell_model"
+# model_name = "basecase_debutanizer_model"
+model_name = ARGS[1]
 liquid_rms_path = ARGS[2]
+if model_name == "basecase_debutanizer_model"
+    delta_t = 64.0
+elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+    delta_t = 32.0
+end
 
 function load_film_simulations(perturb_species_list, perturb_factor_list, trays; asymptotic=false)
     film_simulations = Dict()
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
             film_simulations[perturb_species, perturb_factor] = Dict()
-            if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
+            if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
-            elseif model == "QCMD_cell_model"
+            elseif model_name == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
             end
             for tray in trays
@@ -46,9 +51,9 @@ function load_film_rops(perturb_species_list, perturb_factor_list, trays)
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
             film_rops[perturb_species, perturb_factor] = Dict()
-            if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
+            if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
-            elseif model == "QCMD_cell_model"
+            elseif model_name == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
             end
             for tray in trays
@@ -112,7 +117,7 @@ function calculate_fragment_per_mass(name, df)
     return df[end, name] / mass
 end
 
-if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
 
     d = 2.5
     h = 0.3
@@ -338,9 +343,9 @@ if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_m
 
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
-            if model == "basecase_debutanizer_model"
+            if model_name == "basecase_debutanizer_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
-            elseif model == "QCMD_cell_model"
+            elseif model_name == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
             end
             file = joinpath(simulation_result_folder, "simulation_vapor_liquid_yliqn_3648.0.csv")
@@ -459,9 +464,9 @@ if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_m
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
             film_rops[perturb_species, perturb_factor] = Dict()
-            if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
+            if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
-            elseif model == "QCMD_cell_model"
+            elseif model_name == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
             end
             for tray in trays
@@ -513,7 +518,7 @@ if model in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_m
     fig.savefig("$(model_name)_sens_chem_contribution.pdf", bbox_inches="tight")
     plt.close()
 
-elseif model == "QCMD_cell_model"
+elseif model_name == "QCMD_cell_model"
 
     Vreactor = 40 * 1e-9
     d = 0.55 #in
