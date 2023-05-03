@@ -14,6 +14,7 @@ merge!(rcParams, font0)
 
 rms_path = ARGS[1]
 model_name = ARGS[2]
+delta_t = parse(Float64, ARGS[3])
 
 println("Loading RMS model...")
 mech = YAML.load_file(rms_path)
@@ -60,7 +61,6 @@ source_string_index_dict["cond"] = length(rxnstrings) + 3
 source_string_index_dict["evap"] = length(rxnstrings) + 4
 
 t0 = 0.0
-delta_t = 64.0
 tf = 3600.0
 ts = t0:delta_t:tf+delta_t
 
