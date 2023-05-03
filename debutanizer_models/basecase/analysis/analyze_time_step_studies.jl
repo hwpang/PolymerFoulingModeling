@@ -115,7 +115,11 @@ axs[end].axis(:off)
 handles, labels = axs[1].get_legend_handles_labels()
 axs[end].legend(handles, labels)
 
-axs[2].set_ylabel("Radical (mol/m^3)", fontsize=12)
+if model_name == "basecase_debutanizer_model"
+    axs[2].set_ylabel("Radical (mol/m^3)", fontsize=12)
+elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+    axs[2].set_ylabel("RC. (mol/m^3)", fontsize=12)
+end
 axs[3].set_xlabel("Time (sec)", fontsize=12)
 fig.tight_layout()
 fig.savefig("$(model_name)_carboncenterradical_steady_state.pdf", bbox_to_anchor="tight")
@@ -145,7 +149,7 @@ if model_name == "trace_oxygen_perturbed_debutanizer_model"
     handles, labels = axs[1].get_legend_handles_labels()
     axs[end].legend(handles, labels)
 
-    axs[2].set_ylabel("Radical (mol/m^3)", fontsize=12)
+    axs[2].set_ylabel("ROO. (mol/m^3)", fontsize=12)
     axs[3].set_xlabel("Time (sec)", fontsize=12)
     fig.tight_layout()
     fig.savefig("$(model_name)_peroxylradical_steady_state.pdf", bbox_to_anchor="tight")
@@ -173,7 +177,7 @@ if model_name == "trace_oxygen_perturbed_debutanizer_model"
     handles, labels = axs[1].get_legend_handles_labels()
     axs[end].legend(handles, labels)
 
-    axs[2].set_ylabel("Radical (mol/m^3)", fontsize=12)
+    axs[2].set_ylabel("RO. (mol/m^3)", fontsize=12)
     axs[3].set_xlabel("Time (sec)", fontsize=12)
     fig.tight_layout()
     fig.savefig("$(model_name)_alkoxylradical_steady_state.pdf", bbox_to_anchor="tight") 
