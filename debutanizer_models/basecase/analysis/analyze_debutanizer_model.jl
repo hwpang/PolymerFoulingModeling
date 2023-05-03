@@ -187,11 +187,11 @@ elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
     peroxylradical_chemical_lifetime = peroxylradicalmoltray ./ peroxylradicalreactiontray
     peroxylradical_residence_time = peroxylradicalmoltray ./ peroxylradicaloutlettray
     ratios = peroxylradical_chemical_lifetime ./ peroxylradical_residence_time
-    ax.plot(trays[1:23], ratios[1:23], "-x", label="ROO.")
+    ax.plot(trays, ratios, "-x", label="ROO.")
     alkoxylradical_chemical_lifetime = alkoxylradicalmoltray ./ alkoxylradicalreactiontray
     alkoxylradical_residence_time = alkoxylradicalmoltray ./ alkoxylradicaloutlettray
     ratios = alkoxylradical_chemical_lifetime ./ alkoxylradical_residence_time
-    ax.plot(trays[1:23], ratios[1:23], "-s", label="RO.")
+    ax.plot(trays, ratios, "-s", label="RO.")
     ax.legend(bbox_to_anchor=(1, 1))
 end
 ax.set_yscale(:log)
