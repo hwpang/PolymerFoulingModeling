@@ -39,7 +39,7 @@ do
     perturb_species=${job[0]}
     perturb_factor=${job[1]}
     start=`date +%s`
-    time_step=32.0
+    time_step="32.0"
     liquid_simulation_results_directory="./simulation_results/${perturb_species}_${perturb_factor}_3600.0_${time_step}"
     python-jl $PFM_PATH/debutanizer_models/basecase/ASF_distribution/get_alpha_for_ASF_distribution.py \
                 --chemkin_path $chemkin_path \
