@@ -231,7 +231,7 @@ ax = fig.add_subplot(element(2, slice(0, 2)))
 bottom = zeros(length(trays))
 sources = ["R._inlet", "R._cond", "R._RevDisprop"]
 if model_name == "trace_oxygen_perturbed_debutanizer_model"
-   append!(sources, ["ROO._inlet", "ROO._cond", "RO._inlet", "RO._cond", "RO._ROORDecomp"])
+   append!(sources, ["ROO._inlet", "ROO._cond", "RO._inlet", "RO._cond", "RO._BondDiss"])
 end
 allradicalproductiontray = sum(radical_production_rates[source] for source in sources)
 for source in sources
