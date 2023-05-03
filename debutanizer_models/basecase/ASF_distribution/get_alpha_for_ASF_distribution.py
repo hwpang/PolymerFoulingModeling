@@ -346,7 +346,7 @@ for i, spc in enumerate(liqspcs):
 
 # %%
 def find_R_and_ROO(spc_list):
-    R, ROO = False, False, False
+    R, ROO = False, False
     for spc in spc_list:
         spc_id = spc_label_index_dict.get(spc.label)
         if spc_id in Rs_id:
