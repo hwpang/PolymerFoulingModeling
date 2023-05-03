@@ -59,6 +59,12 @@ def parse_arguments():
         required=True,
         help="The name of the model, i.e., basecase_debutanizer_model or QCMD_cell_model.",
     )
+    parser.add_argument(
+        "--time_step",
+        type=float,
+        default=64.0,
+        help="The time step used in the simulation.",
+    )
 
     args = parser.parse_args()
 
@@ -69,6 +75,7 @@ def parse_arguments():
     results_directory = args.results_directory
     n_jobs = args.n_jobs
     model_name = args.model_name
+    time_step = args.time_step
 
     return (
         chemkin_path,
@@ -78,6 +85,7 @@ def parse_arguments():
         results_directory,
         n_jobs,
         model_name,
+        time_step,
     )
 
 
@@ -109,6 +117,7 @@ def generate_trimerization(spc_i, spc_j):
     results_directory,
     n_jobs,
     model_name,
+    time_step,
 ) = parse_arguments()
 
 # %%
@@ -143,7 +152,9 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
 
     trays = np.arange(0, 40, 1)
     ROP_CSV = r"^simulation_vapor_liquid_liqrop_(\d+).csv"
-    SS_MOL_CSV = "simulation_vapor_liquid_yvapn_3648.0.csv"
+    
+    tf = range(0, 3600+time_step, time_step)[-1]
+    SS_MOL_CSV = f"simulation_vapor_liquid_yvapn_{tf}.csv"
 elif model_name == "QCMD_cell_model":
     initial_monomer_labels = [
         "5-methylcyclohexadiene",
