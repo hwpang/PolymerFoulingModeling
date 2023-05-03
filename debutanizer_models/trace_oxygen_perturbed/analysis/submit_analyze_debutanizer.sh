@@ -1,3 +1,7 @@
+#!/bin/bash -l
+#SBATCH -J analyze_debutanizer
+#SBATCH -o slurm-analyze_debutanizer.out
+
 conda activate rmg_py3_20230404
 
 which julia
