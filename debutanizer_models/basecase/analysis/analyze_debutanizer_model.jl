@@ -174,7 +174,6 @@ end
 ax.set_ylabel("R.(liq) (mol/m^3)", fontsize=12)
 ax.set_xlabel("Tray", fontsize=12)
 ax.set_yscale(:log)
-ax.set_ylim([1e-18, 1e-5])
 ax.set_title("(a)", loc="left")
 
 ax = fig.add_subplot(element(0, 1))
@@ -192,7 +191,6 @@ elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
     alkoxylradical_residence_time = alkoxylradicalmoltray ./ alkoxylradicaloutlettray
     ratios = alkoxylradical_chemical_lifetime ./ alkoxylradical_residence_time
     ax.plot(trays, ratios, "-s", label="RO.")
-    ax.set_ylim([1e-6, 1e0])
     ax.legend(bbox_to_anchor=(1, 1))
 end
 ax.set_yscale(:log)
