@@ -192,6 +192,7 @@ elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
     alkoxylradical_residence_time = alkoxylradicalmoltray ./ alkoxylradicaloutlettray
     ratios = alkoxylradical_chemical_lifetime ./ alkoxylradical_residence_time
     ax.plot(trays, ratios, "-s", label="RO.")
+    ax.set_ylim([1e-6, 1e0])
     ax.legend(bbox_to_anchor=(1, 1))
 end
 ax.set_yscale(:log)
