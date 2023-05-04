@@ -177,6 +177,7 @@ RXN_TYPES = [
     "R._Disprop",
     "R._CycEther",
     "ROO._Add",
+    "ROO._Habs_ROO.",
     "ROO._Habs",
     "ROO._Recomb",
     "ROO._Disprop",
@@ -411,6 +412,8 @@ for i, rxn in enumerate(liqrxns):
     elif rxn_family == "H_Abstraction":
         if r_in:
             family_categories["R._Habs"].append(i)
+        elif roo_in:
+            family_categories["ROO._Habs_ROO."].append(i)
         if roo_in:
             family_categories["ROO._Habs"].append(i)
         if ro_in:
@@ -593,7 +596,7 @@ alpha2 = (rates["ROO._Add"]) / (
     rates["ROO._Add"]
     + rates["ROO._outlet"]
     + rates["ROO._evap"]
-    + rates["ROO._Habs"]
+    + rates["ROO._Habs_ROO."]
     + rates["ROO._Recomb"]
     + rates["ROO._Disprop"]
     + rates["ROO._eli"]
