@@ -120,15 +120,9 @@ liquid_rates = YAML.load_file(path)
 alpha1, alpha2, alphas, alphas_DA = liquid_rates[1]
 rates = liquid_rates[2]
 radical_production_rates = liquid_rates[3]
-# -
 
-rates
+# plot RC. composition
 
-# # Radical concentration
-
-ENV["COLUMNS"] = "500"
-
-# +
 
 carboncenterradicalmoltray = sum(eachcol(liquid_mols[perturbed_target, perturbed_factor][!, carboncenterradicalspcnames]))
 carboncenterradicaloutlettray = rates["R._outlet"] + rates["R._evap"]

@@ -488,6 +488,18 @@ for tray in trays:
         conc[tray][idx] = ss_mol_df.loc[tray, label] / Vliq
 
 # %%
+print("R.+O2...")
+rxn_rates = {}
+rxn_rates["R.+O2"] = {}
+for i in family_categories["R.+O2"]:
+    rxn = liqrxns[i]
+    rxn_rates["R.+O2"][rxn.label] = [0.0] * len(trays)
+    for tray in trays:
+        rops = rop_matrix[tray][:, i][Rs_id, :]
+        rops = rops[rops < 0]
+        rxn_rates["R.+O2"][rxn.label][tray] = np.sum(rops)
+
+# %%
 print("Calculating alpha...")
 rates = {}
 production_rates = {}
@@ -735,6 +747,7 @@ with open(os.path.join(results_directory, "alpha_rates.yml"), "w+") as f:
             [alpha1.tolist(), alpha2.tolist(), alphas.tolist(), alphas_DA.tolist()],
             {key: value.tolist() for key, value in rates.items()},
             {key: value.tolist() for key, value in production_rates.items()},
+            rxn_rates,
         ],
         f,
     )
