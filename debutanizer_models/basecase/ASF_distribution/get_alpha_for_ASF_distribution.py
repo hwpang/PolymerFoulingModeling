@@ -493,11 +493,12 @@ rxn_rates = {}
 rxn_rates["R.+O2"] = {}
 for i in family_categories["R.+O2"]:
     rxn = liqrxns[i]
-    rxn_rates["R.+O2"][rxn.label] = [0.0] * len(trays)
+    rxn_rates["R.+O2"][rxn.label] = np.zeros_like(trays, dtype=float)
     for tray in trays:
         rops = rop_matrix[tray][:, [i]][Rs_id, :]
         rops = rops[rops < 0]
         rxn_rates["R.+O2"][rxn.label][tray] = np.sum(rops)
+    rxn_rates["R.+O2"][rxn.label] = rxn_rates["R.+O2"][rxn.label].tolist()
 
 # %%
 print("Calculating alpha...")
