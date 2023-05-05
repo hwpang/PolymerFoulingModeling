@@ -495,7 +495,7 @@ for i in family_categories["R.+O2"]:
     rxn = liqrxns[i]
     rxn_rates["R.+O2"][rxn.label] = [0.0] * len(trays)
     for tray in trays:
-        rops = rop_matrix[tray][:, i][Rs_id, :]
+        rops = rop_matrix[tray][:, [i]][Rs_id, :]
         rops = rops[rops < 0]
         rxn_rates["R.+O2"][rxn.label][tray] = np.sum(rops)
 
