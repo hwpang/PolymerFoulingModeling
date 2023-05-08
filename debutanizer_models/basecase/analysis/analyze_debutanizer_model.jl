@@ -104,15 +104,6 @@ for perturbed_target in perturbed_target_list
 end
 
 # +
-liquid_rops = Dict()
-spc_name_index_dict = Dict(spcname => i for (i, spcname) in enumerate(spcnames))
-for tray in trays
-    path = "../simulation_results/$(perturbed_target)_$(perturbed_factor)_3600.0_$(delta_t)/simulation_vapor_liquid_liqrop_$(tray).csv"
-    df = DataFrame(CSV.File(path))
-    spc_inds = [spc_name_index_dict[spcname] for spcname in df[!, "rop_spcname"]]
-    source_inds = [source_string_index_dict[sourcestring] for sourcestring in df[!, "rop_sourcestring"]]
-    liquid_rops[tray] = sparse(spc_inds, source_inds, df[!, "rop"])
-end
 
 liquid_rates = Dict()
 path = "../simulation_results/$(perturbed_target)_$(perturbed_factor)_3600.0_$(delta_t)/alpha_rates.yml"

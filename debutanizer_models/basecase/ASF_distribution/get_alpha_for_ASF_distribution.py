@@ -345,6 +345,13 @@ for i, spc in enumerate(liqspcs):
     elif "C" in spc.smiles or "c" in spc.smiles:
         Rs_id.append(i)
 
+Rs_labels = [liqspcs[i].label for i in Rs_id]
+ROOs_labels = [liqspcs[i].label for i in ROOs_id]
+ROs_labels = [liqspcs[i].label for i in ROs_id]
+Rs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in Rs_labels}
+ROOs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in ROOs_labels}
+ROs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in ROs_labels}
+
 # %%
 def find_R_ROO_and_RO(spc_list):
     R, ROO, RO = False, False, False
@@ -488,18 +495,19 @@ for tray in trays:
         conc[tray][idx] = ss_mol_df.loc[tray, label] / Vliq
 
 # %%
-print("R.+O2...")
+print("Getting detailed rates...")
 rxn_rates = {}
-rxn_rates["R.+O2"] = {}
-for i in family_categories["R.+O2"]:
-    rxn = liqrxns[i]
-    rxn_label = "+".join([spc.label for spc in rxn.reactants]) + "<=>" + "+".join(spc.label for spc in rxn.products)
-    rxn_rates["R.+O2"][rxn_label] = np.zeros_like(trays, dtype=float)
-    for tray in trays:
-        rops = rop_matrix[tray][:, [i]][Rs_id, :]
-        rops = rops[rops < 0]
-        rxn_rates["R.+O2"][rxn_label][tray] = np.sum(rops)
-    rxn_rates["R.+O2"][rxn_label] = rxn_rates["R.+O2"][rxn_label].tolist()
+for family in family_categories:
+    rxn_rates[family] = {}
+    for i in family_categories[family]:
+        rxn = liqrxns[i]
+        rxn_label = "+".join([spc.label for spc in rxn.reactants]) + "<=>" + "+".join(spc.label for spc in rxn.products)
+        rxn_rates[family][rxn_label] = np.zeros_like(trays, dtype=float)
+        for tray in trays:
+            rops = rop_matrix[tray][:, [i]][Rs_id, :]
+            rops = rops[rops < 0]
+            rxn_rates[family][rxn_label][tray] = np.sum(rops)
+        rxn_rates[family][rxn_label] = rxn_rates[family][rxn_label].tolist()
 
 # %%
 print("Calculating alpha...")
@@ -750,6 +758,7 @@ with open(os.path.join(results_directory, "alpha_rates.yml"), "w+") as f:
             {key: value.tolist() for key, value in rates.items()},
             {key: value.tolist() for key, value in production_rates.items()},
             rxn_rates,
+            [Rs_mols, ROOs_mols, ROs_mols],
         ],
         f,
     )
