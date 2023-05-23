@@ -106,6 +106,8 @@ ax.set_xlabel("Tray", fontsize=12)
 ax.set_yscale("log")
 ax.set_title("(b)", loc="left")
 
+patterns = [ "/" , "\\" , "|" , "-" , "+" , "x", "o", "O", ".", "*" ]
+
 ax = fig.add_subplot(gs[1, :])
 bottom = np.zeros(len(trays))
 consumption_paths = [
@@ -115,6 +117,7 @@ consumption_paths = [
     "RO._outlet", "RO._evap", "RO._Add", "RO._Habs", "RO._Recomb", "RO._Disprop", "RO._CycEther"
 ]
 total_consumption_rates = np.sum([consumption_rates[path] for path in consumption_paths], axis=0)
+count = 0
 for consumption_path in consumption_paths:
     percentages = consumption_rates[consumption_path]/total_consumption_rates*100
     if any(percentages > 2):
@@ -122,7 +125,8 @@ for consumption_path in consumption_paths:
             label = consumption_path.replace("R.", "RC.")
         else:
             label = consumption_path
-        ax.bar(trays, percentages, bottom=bottom, label=label)
+        ax.bar(trays, percentages, bottom=bottom, label=label, hatch=patterns[count])
+        count += 1
         bottom += percentages
 ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
 ax.set_ylabel("R.(liq) consumption (%)")
@@ -139,6 +143,7 @@ production_paths = [
     "ROO._inlet", "ROO._cond", "RO._inlet", "RO._cond", "RO._BondDiss"
 ]
 total_production_rates = np.sum([production_rates[path] for path in production_paths], axis=0)
+count = 0
 for production_path in production_paths:
     percentages = production_rates[production_path]/total_production_rates*100
     if any(percentages > 2):
@@ -146,7 +151,8 @@ for production_path in production_paths:
             label = production_path.replace("R.", "RC.")
         else:
             label = production_path
-        ax.bar(trays, percentages, bottom=bottom, label=label)
+        ax.bar(trays, percentages, bottom=bottom, label=label, hatch=patterns[count])
+        count += 1
         bottom += percentages
 ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
 ax.set_ylabel("R.(liq) production (%)")
