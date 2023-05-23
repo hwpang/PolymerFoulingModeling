@@ -82,7 +82,8 @@ def calculate_film_growth_time_constant(df):
     return m / dmdt / 3600.0 / 24.0 / 365.0 # year
 
 def calculate_fragment_per_mass(df, label):
-    return df.loc[-1, label] / df.loc[-1, "mass"] 
+    n_rows = len(df.index)
+    return df.loc[n_rows-1, label] / df.loc[n_rows-1, "mass"] 
 
 factorcmap = plt.get_cmap("PuRd")
 
