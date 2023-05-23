@@ -206,7 +206,7 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
         rops, rop_rxncomments, rop_rxnstrs = get_rops(film_rops[perturb_species, perturb_factor][tray], "mass")
         append!(all_rop_rxncomments, rop_rxnstrs)
         local xs = 1:length(rop_rxncomments)
-        axs[ind, 1].barh(xs, rops / mass, align="center")
+        axs[ind, 1].barh(xs, rops, align="center")
         axs[ind, 1].set_yticks(xs)
         axs[ind, 1].set_yticklabels(rop_rxncomments)
         axs[ind, 1].set_ylabel("Tray $(tray)")

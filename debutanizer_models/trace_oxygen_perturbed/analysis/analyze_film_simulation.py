@@ -111,8 +111,7 @@ fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
 for ind, tray in enumerate(selected_trays):
     rops, rop_rxncomments, rop_rxnstrs = get_rops(rate_of_productions[tray], "mass")
     xs = np.arange(len(rop_rxncomments))
-    mass = film_simulations[perturb_species, perturb_factor][tray][-1, "mass"]
-    axs[ind].barh(xs, rops / mass, align="center")
+    axs[ind].barh(xs, rops, align="center")
     axs[ind].set_yticks(xs)
     axs[ind].set_yticklabels(rop_rxncomments)
     axs[ind].set_ylabel(f"Tray {tray}")
