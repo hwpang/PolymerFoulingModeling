@@ -125,7 +125,7 @@ for consumption_path in consumption_paths:
             label = consumption_path.replace("R.", "RC.")
         else:
             label = consumption_path
-        ax.bar(trays, percentages, bottom=bottom, label=label, hatch=patterns[count])
+        ax.bar(trays, percentages, bottom=bottom, label=label, hatch=patterns[count], width=1.0)
         count += 1
         bottom += percentages
 ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
@@ -151,7 +151,7 @@ for production_path in production_paths:
             label = production_path.replace("R.", "RC.")
         else:
             label = production_path
-        ax.bar(trays, percentages, bottom=bottom, label=label, hatch=patterns[count])
+        ax.bar(trays, percentages, bottom=bottom, label=label, hatch=patterns[count], width=1.0)
         count += 1
         bottom += percentages
 ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
