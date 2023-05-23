@@ -1,3 +1,7 @@
+#!/bin/sh -l
+#SBATCH -J analyze_film_simulation
+#SBATCH -o slurm-analyze_film_simulation.out
+
 conda activate rmg_py3_20230404
 
 which julia
