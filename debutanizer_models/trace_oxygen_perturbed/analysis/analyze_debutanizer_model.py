@@ -43,6 +43,8 @@ with open(alpha_rates_path, 'r') as f:
     alpha2 = np.array(alpha2)
     alphas = np.array(alphas)
     alphas_DA = np.array(alphas_DA)
+    for key in consumption_rates.keys():
+        consumption_rates[key] = np.array(consumption_rates[key])
 
 d = 2.5
 h = 0.3
@@ -150,8 +152,8 @@ gs = fig.add_gridspec(3, 3)
 # ax.set_yscale("log")
 
 ax = fig.add_subplot(gs[0, 0])
-alpha1_RC_add = alpha1 * consumption_rates["R._Add"] / (consumption_rates["R._Add"] + consumption_rates["R.+O2"])
-alpha1_RC_O2 = alpha1 * consumption_rates["R.+O2"] / (consumption_rates["R._Add"] + consumption_rates["R.+O2"])
+alpha1_RC_add = alpha1 * (consumption_rates["R._Add"] / (consumption_rates["R._Add"] + consumption_rates["R.+O2"]))
+alpha1_RC_O2 = alpha1 * (consumption_rates["R.+O2"] / (consumption_rates["R._Add"] + consumption_rates["R.+O2"]))
 ax.scatter(trays, alpha1_RC_add, c=cs, zorder=2, label=r"$\alpha_\mathrm{RC._add}$")
 ax.plot(trays, alpha1_RC_add, zorder=1, color="grey")
 ax.scatter(trays, alpha1_RC_O2, c=cs, zorder=2, label=r"$\alpha_\mathrm{RC.+O2}$")
