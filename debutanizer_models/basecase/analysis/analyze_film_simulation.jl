@@ -481,9 +481,17 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
         axs[1, 2].set_ylabel("ROO.(L) (mol/m³)")
         axs[2, 1].set_ylabel("Film growth " * L"\tau" * " (yr)")
         axs[3, 1].set_ylabel("AR/mass (mol/kg)")
-        axs[4, 1].set_ylabel("KR/mass (mol/kg)")
         axs[3, 2].set_ylabel("PR/mass (mol/kg)")
+        axs[4, 1].set_ylabel("KR/mass (mol/kg)")
         axs[4, 2].set_ylabel("OR/mass (mol/kg)")
+
+        axs[1, 1].set_title("(a)")
+        axs[1, 2].set_title("(b)")
+        axs[2, 1].set_title("(c)")
+        axs[3, 1].set_title("(d)")
+        axs[3, 2].set_title("(e)")
+        axs[4, 1].set_title("(f)")
+        axs[4, 2].set_title("(g)")
     end
 
     if model_name == "basecase_debutanizer_model"
