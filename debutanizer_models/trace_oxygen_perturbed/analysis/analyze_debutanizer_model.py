@@ -106,7 +106,7 @@ ax.set_xlabel("Tray", fontsize=12)
 ax.set_yscale("log")
 ax.set_title("(b)", loc="left")
 
-patterns = [ "/" , "\\" , "|" , "-" , "+" , "x", "o", "O", ".", "*" ]
+patterns = ['//', '\\\\', '||', '--', '++', 'xx', 'oo', 'OO', '..', '**']
 
 ax = fig.add_subplot(gs[1, :])
 bottom = np.zeros(len(trays))
