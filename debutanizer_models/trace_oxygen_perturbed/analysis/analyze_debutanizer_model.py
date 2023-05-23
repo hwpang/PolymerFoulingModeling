@@ -100,7 +100,7 @@ ax = fig.add_subplot(gs[1, :])
 bottom = np.zeros(len(trays))
 consumption_paths = consumption_rates.keys()
 consumption_paths = [path for path in consumption_paths if "R." in path or "ROO." in path or "RO." in path]
-total_consumption_rates = np.sum(list(consumption_rates.values()), axis=0)
+total_consumption_rates = np.sum([consumption_rates[path] for path in consumption_paths], axis=0)
 for consumption_path in consumption_paths:
     percentages = consumption_rates[consumption_path]/total_consumption_rates*100
     if any(percentages > 2):
@@ -122,7 +122,7 @@ ax = fig.add_subplot(gs[2, :])
 bottom = np.zeros(len(trays))
 production_paths = production_rates.keys()
 production_paths = [path for path in production_paths if "R." in path or "ROO." in path or "RO." in path]
-total_production_rates = np.sum(list(production_rates.values()), axis=0)
+total_production_rates = np.sum([production_rates[path] for path in production_paths], axis=0)
 for production_path in production_paths:
     percentages = production_rates[production_path]/total_production_rates*100
     if any(percentages > 2):
