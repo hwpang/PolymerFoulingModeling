@@ -76,7 +76,8 @@ fig = plt.figure(figsize=(9, 9))
 gs = fig.add_gridspec(3, 2)
 
 ax = fig.add_subplot(gs[0, 0])
-ax.plot(trays, carbon_center_radical_mols / Vliq, "-o", label="RC.")
+concs = carbon_center_radical_mols / Vliq
+ax.plot(trays, concs, "-o", label="RC.")
 concs = peroxyl_radical_mols / Vliq
 ax.plot(trays, concs, "-x", label="ROO.")
 concs = alkoxyl_radical_mols / Vliq
@@ -100,13 +101,14 @@ bottom = np.zeros(len(trays))
 consumption_paths = consumption_rates.keys()
 total_consumption_rates = np.sum(list(consumption_rates.values()), axis=0)
 for consumption_path in consumption_paths:
-    if any(consumption_rates[consumption_path]/total_consumption_rates > 0.02):
+    percentages = consumption_rates[consumption_path]/total_consumption_rates*100
+    if any(percentages > 2):
         if "R." in consumption_path:
             label = consumption_path.replace("R.", "RC.")
         else:
             label = consumption_path
-        ax.bar(trays, consumption_rates[consumption_path], bottom=bottom, label=label)
-        bottom += consumption_rates[consumption_path]
+        ax.bar(trays, percentages, bottom=bottom, label=label)
+        bottom += percentages
 ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
 ax.set_ylabel("R.(liq) consumption (%)")
 ax.set_ylim([0, 100])
@@ -120,13 +122,14 @@ bottom = np.zeros(len(trays))
 production_paths = production_rates.keys()
 total_production_rates = np.sum(list(production_rates.values()), axis=0)
 for production_path in production_paths:
-    if any(production_rates[production_path]/total_production_rates > 0.02):
+    percentages = production_rates[production_path]/total_production_rates*100
+    if any(percentages > 2):
         if "R." in production_path:
             label = production_path.replace("R.", "RC.")
         else:
             label = production_path
-        ax.bar(trays, production_rates[production_path], bottom=bottom, label=label)
-        bottom += production_rates[production_path]
+        ax.bar(trays, percentages, bottom=bottom, label=label)
+        bottom += percentages
 ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
 ax.set_ylabel("R.(liq) production (%)")
 ax.set_ylim([0, 100])
