@@ -215,7 +215,7 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
         axs[ind, 1].set_xlim([1e-16, 1e-9])
     end
 
-    axs[end, 1].set_xlabel("Rate of film growth (kg/(kg*s))")
+    axs[end, 1].set_xlabel("Rate of film growth (kg/s)")
     fig.tight_layout()
     fig.savefig("$(model_name)_film_rop_mass.pdf", bbox_inches="tight")
     plt.close()
