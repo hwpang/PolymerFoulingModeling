@@ -79,7 +79,7 @@ for tray in trays:
 
 print("Plot rate of film growth")
 
-selected_trays = [1, 10, 20, 30, 40]
+selected_trays = [1, 5, 10, 15, 20, 25, 30, 35, 40]
 nrows = len(selected_trays)
 ncols = 1
 
