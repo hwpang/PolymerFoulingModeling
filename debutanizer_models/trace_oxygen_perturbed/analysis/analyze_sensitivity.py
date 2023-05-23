@@ -98,56 +98,56 @@ for species_ind, perturbed_species in enumerate(perturbed_species_list):
         ax.scatter(trays, liquid_carbon_center_radical_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("RC.(L) (mol/m³)")
         ax.set_yscale("log")
-        ax.set_title("(a)")
+        ax.set_title("(a)", loc="left")
 
         ax = axs[0, 1]
         liquid_peroxyl_radical_concs = liquid_simulations[perturbed_species, perturbed_factor].loc[:, ROO_labels].sum(axis=1) / Vliq
         ax.scatter(trays, liquid_peroxyl_radical_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("ROO.(L) (mol/m³)")
         ax.set_yscale("log")
-        ax.set_title("(b)")
+        ax.set_title("(b)", loc="left")
 
         ax = axs[1, 0]
         liquid_alkoxyl_radical_concs = liquid_simulations[perturbed_species, perturbed_factor].loc[:, RO_labels].sum(axis=1) / Vliq
         ax.scatter(trays, liquid_alkoxyl_radical_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("RO.(L) (mol/m³)")
         ax.set_yscale("log")
-        ax.set_title("(c)")
+        ax.set_title("(c)", loc="left")
 
         ax = axs[1, 1]
         film_growth_time_constants = [calculate_film_growth_time_constant(film_simulations[perturbed_species, perturbed_factor, tray]) for tray in trays]
         ax.scatter(trays, film_growth_time_constants, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("Film growth τ (yr)")
         ax.set_yscale("log")
-        ax.set_title("(d)")
+        ax.set_title("(d)", loc="left")
 
         ax = axs[2, 0]
         AR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "AR") for tray in trays]
         ax.scatter(trays, AR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("AR/mass (mol/kg)")
         ax.set_yscale("log")
-        ax.set_title("(e)")
+        ax.set_title("(e)", loc="left")
 
         ax = axs[2, 1]
         KR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "KR") for tray in trays]
         ax.scatter(trays, KR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("KR/mass (mol/kg)")
         ax.set_yscale("log")
-        ax.set_title("(f)")
+        ax.set_title("(f)", loc="left")
 
         ax = axs[3, 0]
         PR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "PR") for tray in trays]
         ax.scatter(trays, PR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("PR/mass (mol/kg)")
         ax.set_yscale("log")
-        ax.set_title("(g)")
+        ax.set_title("(g)", loc="left")
 
         ax = axs[3, 1]
         OR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "OR") for tray in trays]
         ax.scatter(trays, OR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("OR/mass (mol/kg)")
         ax.set_yscale("log")
-        ax.set_title("(h)")
+        ax.set_title("(h)", loc="left")
 
 axs[3, 0].set_xlabel("Trays")
 axs[3, 1].set_xlabel("Trays")
