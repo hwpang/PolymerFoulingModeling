@@ -163,10 +163,11 @@ ax.scatter(trays, alpha1_RC_add, c=cs, zorder=2, label=r"$\alpha_\mathrm{RC._add
 ax.plot(trays, alpha1_RC_add, zorder=1, color="grey")
 ax.scatter(trays, alpha1_RC_O2, c=cs, zorder=2, label=r"$\alpha_\mathrm{RC.+O2}$", marker="x")
 ax.plot(trays, alpha1_RC_O2, zorder=1, color="grey")
-ax.legend()
+ax.set_ylim([0, 1])
 ax.set_ylabel(r"$\alpha_\mathrm{RC.}$", fontsize=13)
 ax.set_xlabel("Tray")
 ax.set_title("(a)", loc="left")
+ax.legend(bbox_to_anchor=(1, 1))
 
 ax = fig.add_subplot(gs[1, 0])
 ax.scatter(trays, alpha2, c=cs, zorder=2)
