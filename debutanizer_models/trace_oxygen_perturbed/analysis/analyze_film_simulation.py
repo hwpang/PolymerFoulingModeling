@@ -104,7 +104,7 @@ print("Plot rate of production for AR")
 fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
 
 for ind, tray in enumerate(selected_trays):
-    rops, rop_rxncomments = get_rops(rate_of_productions[tray], "AR")
+    rops, rop_rxncomments, rop_rxnstrs = get_rops(rate_of_productions[tray], "AR")
     xs = np.arange(len(rop_rxncomments))
     axs[ind].barh(xs, rops, align="center")
     axs[ind].set_yticks(xs)
