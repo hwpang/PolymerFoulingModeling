@@ -132,7 +132,7 @@ for ind, tray in enumerate(selected_trays):
     axs[ind].set_xscale("log")
     axs[ind].invert_yaxis()
 
-axs[-1].set_xlabel("ROP of KR (mol/s)")
+axs[-1].set_xlabel("Rate of loss of KR (mol/s)")
 fig.tight_layout()
 fig.savefig(f"{model_name}_film_rop_KR.pdf", bbox_inches="tight")
 plt.close()
@@ -151,7 +151,7 @@ for ind, tray in enumerate(selected_trays):
     axs[ind].set_xscale("log")
     axs[ind].invert_yaxis()
 
-axs[-1].set_xlabel("ROP of PR (mol/s)")
+axs[-1].set_xlabel("Rate of loss of PR (mol/s)")
 fig.tight_layout()
 fig.savefig(f"{model_name}_film_rop_PR.pdf", bbox_inches="tight")
 plt.close()
@@ -170,7 +170,7 @@ for ind, tray in enumerate(selected_trays):
     axs[ind].set_xscale("log")
     axs[ind].invert_yaxis()
 
-axs[-1].set_xlabel("ROP of OR (mol/s)")
+axs[-1].set_xlabel("Rate of loss of OR (mol/s)")
 fig.tight_layout()
 fig.savefig(f"{model_name}_film_rop_OR.pdf", bbox_inches="tight")
 plt.close()
