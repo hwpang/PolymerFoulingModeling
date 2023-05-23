@@ -17,7 +17,7 @@ def get_rops(df, rop_name, loss_only=False, production_only=False, N=5):
         rop_rxncomments = rop_rxncomments[prod_inds]
         rop_rxnstrs = rop_rxnstrs[prod_inds]
     
-    sorted_inds = sorted(range(len(rops)), key=lambda i: abs(rops[i]), reverse=True)
+    sorted_inds = rops.argsort()
     if len(sorted_inds) > N:
         sorted_inds = sorted_inds[:N]
     
