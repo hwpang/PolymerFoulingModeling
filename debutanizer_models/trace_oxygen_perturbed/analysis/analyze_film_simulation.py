@@ -104,7 +104,29 @@ print("Plot rate of production for AR")
 fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
 
 for ind, tray in enumerate(selected_trays):
-    rops, rop_rxncomments, rop_rxnstrs = get_rops(rate_of_productions[tray], "AR")
+    rops, rop_rxncomments, rop_rxnstrs = get_rops(rate_of_productions[tray], "AR", loss_only=True)
+    xs = np.arange(len(rop_rxncomments))
+    axs[ind].barh(xs, np.abs(rops), align="center")
+    axs[ind].set_yticks(xs)
+    axs[ind].set_yticklabels(rop_rxncomments)
+    axs[ind].set_ylabel(f"Tray {tray}")
+    axs[ind].set_xscale("log")
+    axs[ind].invert_yaxis()
+    # axs[ind].set_xlim([-1e-9, 1e-9])
+    # axs[ind].set_xticks([-1e-9, -1e-15, 1e-15, 1e-9])
+    # axs[ind].set_xticklabels([-1e-9, -1e-15, 1e-15, 1e-9])
+
+axs[-1].set_xlabel("Rate of loss of AR (mol/s)")
+fig.tight_layout()
+fig.savefig(f"{model_name}_film_rop_AR.pdf", bbox_inches="tight")
+plt.close()
+
+print("Plot rate of production for KR")
+
+fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
+
+for ind, tray in enumerate(selected_trays):
+    rops, rop_rxncomments, rop_rxnstrs = get_rops(rate_of_productions[tray], "KR")
     xs = np.arange(len(rop_rxncomments))
     axs[ind].barh(xs, rops, align="center")
     axs[ind].set_yticks(xs)
@@ -116,7 +138,51 @@ for ind, tray in enumerate(selected_trays):
     # axs[ind].set_xticks([-1e-9, -1e-15, 1e-15, 1e-9])
     # axs[ind].set_xticklabels([-1e-9, -1e-15, 1e-15, 1e-9])
 
-axs[-1].set_xlabel("ROP of AR (mol/s)")
+axs[-1].set_xlabel("ROP of KR (mol/s)")
 fig.tight_layout()
-fig.savefig(f"{model_name}_film_rop_AR.pdf", bbox_inches="tight")
+fig.savefig(f"{model_name}_film_rop_KR.pdf", bbox_inches="tight")
+plt.close()
+
+print("Plot rate of production for PR")
+
+fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
+
+for ind, tray in enumerate(selected_trays):
+    rops, rop_rxncomments, rop_rxnstrs = get_rops(rate_of_productions[tray], "PR")
+    xs = np.arange(len(rop_rxncomments))
+    axs[ind].barh(xs, rops, align="center")
+    axs[ind].set_yticks(xs)
+    axs[ind].set_yticklabels(rop_rxncomments)
+    axs[ind].set_ylabel(f"Tray {tray}")
+    axs[ind].set_xscale("symlog", linthresh=1e-16)
+    axs[ind].invert_yaxis()
+    # axs[ind].set_xlim([-1e-9, 1e-9])
+    # axs[ind].set_xticks([-1e-9, -1e-15, 1e-15, 1e-9])
+    # axs[ind].set_xticklabels([-1e-9, -1e-15, 1e-15, 1e-9])
+
+axs[-1].set_xlabel("ROP of PR (mol/s)")
+fig.tight_layout()
+fig.savefig(f"{model_name}_film_rop_PR.pdf", bbox_inches="tight")
+plt.close()
+
+print("Plot rate of production for OR")
+
+fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
+
+for ind, tray in enumerate(selected_trays):
+    rops, rop_rxncomments, rop_rxnstrs = get_rops(rate_of_productions[tray], "OR")
+    xs = np.arange(len(rop_rxncomments))
+    axs[ind].barh(xs, rops, align="center")
+    axs[ind].set_yticks(xs)
+    axs[ind].set_yticklabels(rop_rxncomments)
+    axs[ind].set_ylabel(f"Tray {tray}")
+    axs[ind].set_xscale("symlog", linthresh=1e-16)
+    axs[ind].invert_yaxis()
+    # axs[ind].set_xlim([-1e-9, 1e-9])
+    # axs[ind].set_xticks([-1e-9, -1e-15, 1e-15, 1e-9])
+    # axs[ind].set_xticklabels([-1e-9, -1e-15, 1e-15, 1e-9])
+
+axs[-1].set_xlabel("ROP of OR (mol/s)")
+fig.tight_layout()
+fig.savefig(f"{model_name}_film_rop_OR.pdf", bbox_inches="tight")
 plt.close()
