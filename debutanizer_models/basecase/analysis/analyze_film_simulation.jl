@@ -21,6 +21,7 @@ if model_name == "basecase_debutanizer_model"
 elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
     delta_t = 32.0
 end
+tf_vap_liq = collect(0.0:delta_t:3600.0)[end]
 
 function load_film_simulations(perturb_species_list, perturb_factor_list, trays; asymptotic=false)
     film_simulations = Dict()
@@ -28,7 +29,7 @@ function load_film_simulations(perturb_species_list, perturb_factor_list, trays;
         for perturb_factor in perturb_factor_list
             film_simulations[perturb_species, perturb_factor] = Dict()
             if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
-                simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
+                simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_$(delta_t)"
             elseif model_name == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
             end
@@ -52,7 +53,7 @@ function load_film_rops(perturb_species_list, perturb_factor_list, trays)
         for perturb_factor in perturb_factor_list
             film_rops[perturb_species, perturb_factor] = Dict()
             if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
-                simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
+                simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_$(delta_t)"
             elseif model_name == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
             end
@@ -390,11 +391,11 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
     for perturb_species in perturb_species_list
         for perturb_factor in perturb_factor_list
             if model_name == "basecase_debutanizer_model"
-                simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_64.0"
+                simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)_3600.0_$(delta_t)"
             elseif model_name == "QCMD_cell_model"
                 simulation_result_folder = "../simulation_results/$(perturb_species)_$(perturb_factor)"
             end
-            file = joinpath(simulation_result_folder, "simulation_vapor_liquid_yliqn_3648.0.csv")
+            file = joinpath(simulation_result_folder, "simulation_vapor_liquid_yliqn_$(tf_vap_liq).csv")
             vapor_liquid_simulations[perturb_species, perturb_factor] = DataFrame(CSV.File(file))
         end
     end
