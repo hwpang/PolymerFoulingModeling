@@ -155,7 +155,6 @@ ax.plot(trays, alpha1, zorder=1, color="grey")
 ax.set_ylabel(r"$\alpha_\mathrm{RC.}$", fontsize=13)
 ax.set_xlabel("Tray")
 ax.set_title("(a)", loc="left")
-ax.set_yscale("log")
 
 ax = fig.add_subplot(gs[1, 0])
 ax.scatter(trays, alpha2, c=cs, zorder=2)
