@@ -37,7 +37,7 @@ def parse_arguments():
 
 with open(alpha_rates_path, 'r') as f:
     results = yaml.load(f, Loader=yaml.FullLoader)
-    all_alphas, consumption_rates, production_rates, rxn_rates, radical_concs = results
+    all_alphas, consumption_rates, production_rates, rxn_rates, radical_mols = results
     alpha1, alpha2, alphas, alphas_DA = all_alphas
     alpha1 = np.array(alpha1)
     alpha2 = np.array(alpha2)
@@ -52,9 +52,9 @@ A = (d / 2) ** 2 * np.pi
 Vliq = A * h
 
 trays = np.arange(0, 40, 1)
-carbon_center_radical_mols = np.sum(list(radical_concs[0].values()), axis=0)
-peroxyl_radical_mols = np.sum(list(radical_concs[1].values()), axis=0)
-alkoxyl_radical_mols = np.sum(list(radical_concs[2].values()), axis=0)
+carbon_center_radical_mols = np.sum(list(radical_mols[0].values()), axis=0)
+peroxyl_radical_mols = np.sum(list(radical_mols[1].values()), axis=0)
+alkoxyl_radical_mols = np.sum(list(radical_mols[2].values()), axis=0)
 
 carbon_center_radical_transport_rates = np.array(consumption_rates["R._outlet"]) + np.array(consumption_rates["R._evap"])
 carbon_center_radical_reaction_rates = np.array(consumption_rates["R._Add"]) + np.array(consumption_rates["R._Habs"]) + np.array(consumption_rates["R._Recomb"]) + np.array(consumption_rates["R._Disprop"]) + np.array(consumption_rates["R._CycEther"])
@@ -171,7 +171,8 @@ ax.scatter(trays, alpha1_RC_O2, c=cs, zorder=2, label=r"$\alpha_\mathrm{RC.+O2}$
 ax.plot(trays, alpha1_RC_O2, zorder=1, color="grey")
 ax.set_ylim([0, 1])
 ax.set_ylabel(r"$\alpha_\mathrm{RC.}$", fontsize=13)
-ax.set_xlabel("Tray")
+ax.set_xticks([])
+ax.set_xticklabels([])
 ax.set_title("(a)", loc="left")
 ax.legend(bbox_to_anchor=(1, 1))
 
@@ -180,7 +181,8 @@ ax.scatter(trays, alpha2, c=cs, zorder=2)
 ax.plot(trays, alpha2, zorder=1, color="grey")
 ax.set_ylim([0, 1])
 ax.set_ylabel(r"$\alpha_\mathrm{ROO.}$", fontsize=13)
-ax.set_xlabel("Tray")
+ax.set_xticks([])
+ax.set_xticklabels([])
 ax.set_title("(b)", loc="left")
 
 ax = fig.add_subplot(gs[2, 0])
