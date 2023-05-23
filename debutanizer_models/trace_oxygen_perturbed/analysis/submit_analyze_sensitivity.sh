@@ -1,6 +1,6 @@
 #!/bin/sh -l
-#SBATCH -J analyze_film_simulation
-#SBATCH -o slurm-analyze_film_simulation.out
+#SBATCH -J analyze_sensitivity
+#SBATCH -o slurm-analyze_sensitivity.out
 
 conda activate rmg_py3_20230404
 
