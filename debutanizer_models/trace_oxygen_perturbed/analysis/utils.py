@@ -20,8 +20,6 @@ def get_rops(df, rop_name, loss_only=False, production_only=False, N=5):
     rop_rxnstrs = rop_rxnstrs[inds]
     
     sorted_inds = np.argsort(rops)[::-1]
-    print(rops)
-    print(sorted_inds)
     if len(sorted_inds) > N:
         sorted_inds = sorted_inds[:N]
     
