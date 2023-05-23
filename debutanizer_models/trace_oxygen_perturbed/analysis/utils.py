@@ -7,15 +7,18 @@ def get_rops(df, rop_name, loss_only=False, production_only=False, N=5):
     rops = df.loc[name_inds, "rop"]
     
     if loss_only:
-        loss_inds = rops < 0
-        rops = rops[loss_inds]
-        rop_rxncomments = rop_rxncomments[loss_inds]
-        rop_rxnstrs = rop_rxnstrs[loss_inds]
+        inds = rops < 0
+        rops = rops[inds]
+        rop_rxncomments = rop_rxncomments[inds]
+        rop_rxnstrs = rop_rxnstrs[inds]
     elif production_only:
-        prod_inds = rops > 0
-        rops = rops[prod_inds]
-        rop_rxncomments = rop_rxncomments[prod_inds]
-        rop_rxnstrs = rop_rxnstrs[prod_inds]
+        inds = rops > 0
+    else:
+        inds = rops != 0
+    
+    rops = rops[inds]
+    rop_rxncomments = rop_rxncomments[inds]
+    rop_rxnstrs = rop_rxnstrs[inds]
     
     sorted_inds = rops.argsort()
     if len(sorted_inds) > N:
