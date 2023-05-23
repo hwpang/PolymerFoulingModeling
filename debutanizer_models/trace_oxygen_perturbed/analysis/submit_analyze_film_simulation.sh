@@ -5,14 +5,16 @@
 conda activate rmg_py3_20230404
 
 which julia
+which python
 
 PFM_PATH=/home/gridsan/hwpang/Software/PolymerFoulingModeling
 model_name=trace_oxygen_perturbed_debutanizer_model
-rms_path=$PFM_PATH/debutanizer_models/trace_oxygen_perturbed/liquid_mechanism/chem.rms
+simulation_directory="../simulation_results/OXYGEN_1e0_3600.0_32.0"
 
 start=$(date +%s)
-julia $PFM_PATH/debutanizer_models/basecase/analysis/analyze_film_simulation.jl \
-        $model_name \
-        $rms_path
+python $PFM_PATH/debutanizer_models/trace_oxygen_perturbed/analysis/analyze_film_simulation.py \
+        --model_name $model_name \
+        --simulation_directory $simulation_directory
+end=$(date +%s)
 runtime=$((end - start))
 echo "runtime: $runtime"
