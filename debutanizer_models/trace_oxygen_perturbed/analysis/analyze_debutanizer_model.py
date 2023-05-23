@@ -39,6 +39,10 @@ with open(alpha_rates_path, 'r') as f:
     results = yaml.load(f, Loader=yaml.FullLoader)
     all_alphas, consumption_rates, production_rates, rxn_rates, radical_concs = results
     alpha1, alpha2, alphas, alphas_DA = all_alphas
+    alpha1 = np.array(alpha1)
+    alpha2 = np.array(alpha2)
+    alphas = np.array(alphas)
+    alphas_DA = np.array(alphas_DA)
 
 d = 2.5
 h = 0.3
