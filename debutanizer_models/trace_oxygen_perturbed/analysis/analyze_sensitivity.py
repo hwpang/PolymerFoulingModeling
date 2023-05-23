@@ -153,7 +153,7 @@ axs[3, 0].set_xlabel("Trays")
 axs[3, 1].set_xlabel("Trays")
 
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
-sm = plt.cm.ScalarMappable(cmap="RdPu", norm=plt.Normalize(vmin=0.5, vmax=1.9))
+sm = plt.cm.ScalarMappable(cmap="RdPu", norm=plt.matplotlib.colors.LogNorm(vmin=1e-7, vmax=1e0))
 cbar = fig.colorbar(sm, ticks=perturbed_factor_num_list, orientation="vertical", label="Perturbation", cax=cbar_ax)
 
 fig.tight_layout()
