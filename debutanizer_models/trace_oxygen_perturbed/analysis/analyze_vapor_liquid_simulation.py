@@ -37,6 +37,15 @@ def parse_arguments():
     simulation_results_path,
 ) = parse_arguments()
 
+d = 2.5
+h = 0.3
+A = (d / 2) ** 2 * np.pi
+Vliq = A * h
+
+trays = np.arange(0, 40, 1)
+
+print("Load alpha and rates")
+
 with open(alpha_rates_path, 'r') as f:
     results = yaml.load(f, Loader=yaml.FullLoader)
     all_alphas, consumption_rates, production_rates, rxn_rates, radical_labels = results
@@ -51,12 +60,8 @@ with open(alpha_rates_path, 'r') as f:
 
 ss_mol_df = pd.read_csv(simulation_results_path)
 
-d = 2.5
-h = 0.3
-A = (d / 2) ** 2 * np.pi
-Vliq = A * h
+print("Plot radical concentrations, chemical lifetime to residence time ratio, consumption rates, and production rates")
 
-trays = np.arange(0, 40, 1)
 carbon_center_radical_mols = ss_mol_df.loc[:, R_labels].sum(axis=1)
 peroxyl_radical_mols = ss_mol_df.loc[:, ROO_labels].sum(axis=1)
 alkoxyl_radical_mols = ss_mol_df.loc[:, RO_labels].sum(axis=1)
@@ -76,7 +81,6 @@ alkoxyl_radical_reaction_rates = np.array(consumption_rates["RO._Add"]) + np.arr
 alkoxyl_radical_chemical_lifetime = alkoxyl_radical_mols / alkoxyl_radical_reaction_rates
 alkoxyl_radical_residence_time = alkoxyl_radical_mols / alkoxyl_radical_transport_rates
 
-#%% Plot the radical concentration, radical lifetime to radical radical residence time ratio, consumption rate distribution, and production rate distribution
 fig = plt.figure(figsize=(9, 9))
 gs = fig.add_gridspec(3, 2)
 
@@ -158,7 +162,8 @@ ax.legend(bbox_to_anchor=(1, 1))
 fig.tight_layout()
 fig.savefig(f"{model_name}_liquid_radical.pdf", bbox_inches="tight")
 
-#%% Plot alpha_DA, alpha_R, and Wn
+print("Plot alphas and ASF distributions")
+
 cmap = plt.get_cmap("plasma")
 cs = cmap(trays / len(trays))
 
