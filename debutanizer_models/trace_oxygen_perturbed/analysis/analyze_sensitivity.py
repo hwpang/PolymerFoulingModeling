@@ -83,14 +83,14 @@ def calculate_film_growth_time_constant(df):
 
 def calculate_fragment_per_mass(df, label):
     n_rows = len(df.index)
-    return df.loc[n_rows-1, label] / df.loc[n_rows-1, "mass"] 
+    return df.loc[n_rows-1, label] / df.loc[n_rows-1, "mass"]
 
 factorcmap = plt.get_cmap("PuRd")
 
 nrows = 4
 ncols = 2
 
-fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 8), sharex=True, sharey="row")
+fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 8), sharex=True)
 for species_ind, perturbed_species in enumerate(perturbed_species_list):
     for factor_ind, perturbed_factor in enumerate(perturbed_factor_list):
         ax = axs[0, 0]
