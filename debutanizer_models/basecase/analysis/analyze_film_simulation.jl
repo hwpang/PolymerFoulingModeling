@@ -205,7 +205,8 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
         rops, rop_rxncomments, rop_rxnstrs = get_rops(film_rops[perturb_species, perturb_factor][tray], "mass")
         append!(all_rop_rxncomments, rop_rxnstrs)
         local xs = 1:length(rop_rxncomments)
-        axs[ind, 1].barh(xs, rops, align="center")
+        local mass = film_simulations[perturb_species, perturb_factor][tray][end, "mass"]
+        axs[ind, 1].barh(xs, rops / mass, align="center")
         axs[ind, 1].set_yticks(xs)
         axs[ind, 1].set_yticklabels(rop_rxncomments)
         axs[ind, 1].set_ylabel("Tray $(tray)")
@@ -214,7 +215,7 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
         axs[ind, 1].set_xlim([1e-16, 1e-9])
     end
 
-    axs[end, 1].set_xlabel("Rate of film growth (kg/s)")
+    axs[end, 1].set_xlabel("Rate of film growth (kg/(kg*s))")
     fig.tight_layout()
     fig.savefig("$(model_name)_film_rop_mass.pdf", bbox_inches="tight")
     plt.close()
@@ -309,6 +310,51 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
     fig.savefig("$(model_name)_film_rop_KR_loss.pdf", bbox_inches="tight")
     plt.close()
 
+    # plot PR rop
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=true)
+
+    for (ind, tray) in enumerate(selected_trays)
+        rops, rop_rxncomments = get_rops(film_rops[perturb_species, perturb_factor][tray], "PR")
+        local xs = 1:length(rop_rxncomments)
+        axs[ind, 1].barh(xs, rops, align="center")
+        axs[ind, 1].set_yticks(xs)
+        axs[ind, 1].set_yticklabels(rop_rxncomments)
+        axs[ind, 1].set_ylabel("Tray $(tray)")
+        axs[ind, 1].set_xscale("symlog", linthresh=1e-16)
+        axs[ind, 1].invert_yaxis()
+        axs[ind, 1].set_xlim([-1e-9, 1e-9])
+        axs[ind, 1].set_xticks([-1e-9, -1e-15, 1e-15, 1e-9])
+        axs[ind, 1].set_xticklabels([-1e-9, -1e-15, 1e-15, 1e-9])
+    end
+
+    axs[end, 1].set_xlabel("ROP of PR (mol/s)")
+    fig.tight_layout()
+    fig.savefig("$(model_name)_film_rop_PR.pdf", bbox_inches="tight")
+    plt.close()
+
+    # plot KR rop loss
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=true)
+
+    for (ind, tray) in enumerate(selected_trays)
+        rops, rop_rxncomments = get_rops(film_rops[perturb_species, perturb_factor][tray], "PR", loss_only=true)
+        local xs = 1:length(rop_rxncomments)
+        axs[ind, 1].barh(xs, rops, align="center")
+        axs[ind, 1].set_yticks(xs)
+        axs[ind, 1].set_yticklabels(rop_rxncomments)
+        axs[ind, 1].set_ylabel("Tray $(tray)")
+        axs[ind, 1].set_xscale("log")
+        axs[ind, 1].set_xlim([1e-16, 1e-9])
+        axs[ind, 1].invert_yaxis()
+        axs[ind, 1].invert_xaxis()
+        axs[ind, 1].set_xticks([1e-16, 1e-12, 1e-9])
+        axs[ind, 1].set_xticklabels([-1e-16, -1e-12, -1e-9])
+    end
+
+    axs[end, 1].set_xlabel("Rate of PR loss (mol/s)")
+    fig.tight_layout()
+    fig.savefig("$(model_name)_film_rop_PR_loss.pdf", bbox_inches="tight")
+    plt.close()
+
     # plot simulation results
 
     function calculate_film_chemistry_contribution(df_dict)
@@ -334,8 +380,8 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
     # plot sensitivity to monomer perturbation
 
     liquid_mech = YAML.load_file(liquid_rms_path)
-    liquid_carbon_center_radical_names = [spc["name"] for spc in liquid_mech["Phases"][1]["Species"] if spc["radicalelectrons"] ==1 && (occursin("[C", spc["smiles"]) || occursin("[c", spc["smiles"]))]
-    liquid_peroxyl_radical_names = [spc["name"] for spc in liquid_mech["Phases"][1]["Species"] if spc["radicalelectrons"] ==1 && occursin("[O", spc["smiles"])]
+    liquid_carbon_center_radical_names = [spc["name"] for spc in liquid_mech["Phases"][1]["Species"] if spc["radicalelectrons"] == 1 && (occursin("[C", spc["smiles"]) || occursin("[c", spc["smiles"]))]
+    liquid_peroxyl_radical_names = [spc["name"] for spc in liquid_mech["Phases"][1]["Species"] if spc["radicalelectrons"] == 1 && occursin("[O", spc["smiles"])]
 
     film_simulations = load_film_simulations(perturb_species_list, perturb_factor_list, trays)
 
@@ -376,7 +422,7 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
             liquid_carbon_center_radical_concs = [calculate_liquid_radical_concentration(vapor_liquid_simulations[perturb_species, perturb_factor], tray, liquid_carbon_center_radical_names) for tray in trays]
             ax.scatter(trays, liquid_radical_concs, color=factorcmap(factor_ind / length(perturb_factor_list)))
             ax.set_yscale("log")
-            
+
             if model_name == "trace_oxygen_perturbed_debutanizer_model"
                 ax = axs[1, 2]
                 liquid_peroxyl_radical_concs = [calculate_liquid_radical_concentration(vapor_liquid_simulations[perturb_species, perturb_factor], tray, liquid_peroxyl_radical_names) for tray in trays]
