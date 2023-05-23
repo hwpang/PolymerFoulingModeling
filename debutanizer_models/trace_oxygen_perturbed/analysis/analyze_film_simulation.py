@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from utils import get_rops
+
 #change default font size to 12
 plt.rcParams.update({'font.size': 12})
 
@@ -57,7 +59,7 @@ cmap = plt.get_cmap("RdPu")
 for fragment_ind, fragment in enumerate(selected_fragments):
     for tray_ind, tray in enumerate(trays):
         df = asymptotic_simulations[tray]
-        axs[fragment_ind].plot(df.loc[:, "timestamp"] / 3600 / 24 / 365, df.loc[:, fragment] / df.loc[:, "mass"], label=tray, color=cmap(tray / len(selected_trays)))
+        axs[fragment_ind].plot(df.loc[:, "timestamp"] / 3600 / 24 / 365, df.loc[:, fragment] / df.loc[:, "mass"], label=tray, color=cmap(tray / len(trays)))
         axs[fragment_ind].set_yscale("log")
         axs[fragment_ind].set_ylabel(f"{fragment}"+"/mass\n(mol/kg)")
         axs[fragment_ind].set_xlim([0, 100])
@@ -74,31 +76,6 @@ rate_of_productions = dict()
 for tray in trays:
     rate_of_production_path = os.path.join(simulation_directory, f"simulation_film_rop_{tray}.csv")
     rate_of_productions[tray] = pd.read_csv(rate_of_production_path)
-
-def get_rops(df, rop_name, loss_only=False, production_only=False, N=5):
-    name_inds = df["rop_spcname"] == rop_name
-    rop_rxncomments = df.loc[name_inds, "rop_rxncomment"]
-    # rop_rxncomments = [rxnstr.replace("\n", " ") for rxnstr in rop_rxncomments]
-    # rop_rxncomments = [rxnstr.replace(" H abstraction", "") for rxnstr in rop_rxncomments]
-    rop_rxnstrs = df.loc[name_inds, "rop_rxnstr"]
-    rops = df.loc[name_inds, "rop"]
-    
-    if loss_only:
-        loss_inds = rops < 0
-        rops = rops[loss_inds]
-        rop_rxncomments = rop_rxncomments[loss_inds]
-        rop_rxnstrs = rop_rxnstrs[loss_inds]
-    elif production_only:
-        prod_inds = rops > 0
-        rops = rops[prod_inds]
-        rop_rxncomments = rop_rxncomments[prod_inds]
-        rop_rxnstrs = rop_rxnstrs[prod_inds]
-    
-    sorted_inds = sorted(range(len(rops)), key=lambda i: abs(rops[i]), reverse=True)
-    if len(sorted_inds) > N:
-        sorted_inds = sorted_inds[:N]
-    
-    return rops[sorted_inds], rop_rxncomments[sorted_inds], rop_rxnstrs[sorted_inds]
 
 print("Plot rate of film growth")
 
