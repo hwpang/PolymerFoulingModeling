@@ -76,8 +76,9 @@ with open(alpha_rates_path, "r") as f:
 print("Plot all sensitivity simulation results")
 
 def calculate_film_growth_time_constant(df):
-    m = df.loc[-2, "mass"]
-    dmdt = (df.loc[-1, "mass"] - df.loc[-3, "mass"])/(df.loc[-1, "timestamp"] - df.loc[-3, "timestamp"])
+    n_rows = len(df.index)
+    m = df.loc[n_rows-2, "mass"]
+    dmdt = (df.loc[n_rows-1, "mass"] - df.loc[n_rows-3, "mass"])/(df.loc[n_rows-1, "timestamp"] - df.loc[n_rows-3, "timestamp"])
     return m / dmdt / 3600.0 / 24.0 / 365.0 # year
 
 def calculate_fragment_per_mass(df, label):
