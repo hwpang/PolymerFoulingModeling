@@ -1,3 +1,5 @@
+import numpy as np
+
 def get_rops(df, rop_name, loss_only=False, production_only=False, N=5):
     name_inds = df["rop_spcname"] == rop_name
     rop_rxncomments = df.loc[name_inds, "rop_rxncomment"]
@@ -17,10 +19,10 @@ def get_rops(df, rop_name, loss_only=False, production_only=False, N=5):
     rop_rxncomments = rop_rxncomments[inds]
     rop_rxnstrs = rop_rxnstrs[inds]
     
-    sorted_inds = rops.argsort()[::-1]
+    sorted_inds = np.argsort(rops)[::-1]
     print(rops)
     print(sorted_inds)
     if len(sorted_inds) > N:
         sorted_inds = sorted_inds[:N]
     
-    return rops[sorted_inds], rop_rxncomments[sorted_inds], rop_rxnstrs[sorted_inds]
+    return rops.iloc[sorted_inds], rop_rxncomments.iloc[sorted_inds], rop_rxnstrs.iloc[sorted_inds]
