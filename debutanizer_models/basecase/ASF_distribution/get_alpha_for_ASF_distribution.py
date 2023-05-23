@@ -490,9 +490,6 @@ for tray in trays:
 Rs_labels = [liqspcs[i].label for i in Rs_id]
 ROOs_labels = [liqspcs[i].label for i in ROOs_id]
 ROs_labels = [liqspcs[i].label for i in ROs_id]
-Rs_mols = {label: [ss_mol_df.loc[tray, label].tolist() for tray in trays] for label in Rs_labels}
-ROOs_mols = {label: [ss_mol_df.loc[tray, label].tolist() for tray in trays] for label in ROOs_labels}
-ROs_mols = {label: [ss_mol_df.loc[tray, label].tolist() for tray in trays] for label in ROs_labels}
 
 # %%
 print("Getting detailed rates...")
@@ -758,7 +755,7 @@ with open(os.path.join(results_directory, "alpha_rates.yml"), "w+") as f:
             {key: value.tolist() for key, value in rates.items()},
             {key: value.tolist() for key, value in production_rates.items()},
             rxn_rates,
-            [Rs_mols, ROOs_mols, ROs_mols],
+            [Rs_labels, ROOs_labels, ROs_labels],
         ],
         f,
     )
