@@ -1,15 +1,10 @@
 # %%
-import sys
-sys.path.insert(0, "/home/gridsan/hwpang/Software/RMG-Py/")
-
-import os
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-
 import yaml
 import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
 #change default font size to 12
 plt.rcParams.update({'font.size': 12})
 
@@ -19,7 +14,7 @@ def parse_arguments():
         "--alpha_rates_path", type=str, required=True, help="The path to the yml file containing alpha and rates.",
     )
     parser.add_argument(
-        "--results_path", type=str, required=True, help="The path to the yml file containing the results.",
+        "--simulation_results_path", type=str, required=True, help="The path to the csv file containing the simulation results.",
     )
     parser.add_argument(
         "--model_name", type=str, required=True, help="The name of the model.",
@@ -28,18 +23,18 @@ def parse_arguments():
     args = parser.parse_args()
     alpha_rates_path = args.alpha_rates_path
     model_name = args.model_name
-    results_path = args.results_path
+    simulation_results_path = args.simulation_results_path
 
     return (
         alpha_rates_path,
         model_name,
-        results_path,
+        simulation_results_path,
     )
 
 (
     alpha_rates_path,
     model_name,
-    results_path,
+    simulation_results_path,
 ) = parse_arguments()
 
 with open(alpha_rates_path, 'r') as f:
@@ -54,7 +49,7 @@ with open(alpha_rates_path, 'r') as f:
     for key in consumption_rates.keys():
         consumption_rates[key] = np.array(consumption_rates[key])
 
-ss_mol_df = pd.read_csv(results_path)
+ss_mol_df = pd.read_csv(simulation_results_path)
 
 d = 2.5
 h = 0.3

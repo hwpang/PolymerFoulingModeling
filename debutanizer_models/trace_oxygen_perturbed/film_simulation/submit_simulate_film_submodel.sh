@@ -19,19 +19,15 @@ jobs=()
 perturb_species_list=("OXYGEN")
 perturb_factor_list=("0.0" "1e-6" "1e-5" "1e-4" "1e-3" "1e-2" "1e-1" "1e0")
 
-for perturb_species in "${perturb_species_list[@]}"
-do
-    for perturb_factor in "${perturb_factor_list[@]}"
-    do
-        for tray in {1..40}
-        do
+for perturb_species in "${perturb_species_list[@]}"; do
+    for perturb_factor in "${perturb_factor_list[@]}"; do
+        for tray in {1..40}; do
             jobs+=("$perturb_species $perturb_factor $tray")
         done
     done
 done
 
-for jobind in `seq $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_COUNT ${#jobs[@]}`
-do
+for jobind in $(seq $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_COUNT ${#jobs[@]}); do
     echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
     echo "SLURM_ARRAY_TASK_COUNT: $SLURM_ARRAY_TASK_COUNT"
     echo "jobind: $jobind"
@@ -40,15 +36,15 @@ do
     perturb_species=${job[0]}
     perturb_factor=${job[1]}
     tray=${job[2]}
-    start=`date +%s`
-    liquid_simulation_results_path="simulation_results/${perturb_species}_${perturb_factor}_3600.0_64.0/simulation_vapor_liquid_yliqn_3648.0.csv"
+    start=$(date +%s)
+    liquid_simulation_results_path="simulation_results/${perturb_species}_${perturb_factor}_3600.0_32.0/simulation_vapor_liquid_yliqn_3616.0.csv"
     julia $PFM_PATH/debutanizer_models/basecase/film_simulation/simulate_film_submodel.jl \
-            $rms_path \
-            $model_name \
-            $liquid_simulation_results_path \
-            $aspen_condition_path \
-            $tray
-    end=`date +%s`
-    runtime=$((end-start))
+        $rms_path \
+        $model_name \
+        $liquid_simulation_results_path \
+        $aspen_condition_path \
+        $tray
+    end=$(date +%s)
+    runtime=$((end - start))
     echo "runtime: $runtime"
 done

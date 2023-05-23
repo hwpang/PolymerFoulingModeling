@@ -12,7 +12,7 @@ results_path="../simulation_results/OXYGEN_1e0_3600.0_32.0/simulation_vapor_liqu
 model_name=trace_oxygen_perturbed_debutanizer_model
 
 start=$(date +%s)
-python $PFM_PATH/debutanizer_models/trace_oxygen_perturbed/analysis/analyze_debutanizer_model.py \
+python $PFM_PATH/debutanizer_models/trace_oxygen_perturbed/analysis/analyze_vapor_liquid_simulation.py \
         --alpha_rates_path $alpha_rates_path \
         --model_name $model_name \
         --results_path $results_path
