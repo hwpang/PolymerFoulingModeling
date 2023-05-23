@@ -121,28 +121,28 @@ for species_ind, perturbed_species in enumerate(perturbed_species_list):
         ax.set_title("(d)")
 
         ax = axs[2, 0]
-        AR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor][tray], "AR") for tray in trays]
+        AR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "AR") for tray in trays]
         ax.scatter(trays, AR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("AR/mass (mol/kg)")
         ax.set_yscale("log")
         ax.set_title("(e)")
 
         ax = axs[2, 1]
-        KR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor][tray], "KR") for tray in trays]
+        KR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "KR") for tray in trays]
         ax.scatter(trays, KR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("KR/mass (mol/kg)")
         ax.set_yscale("log")
         ax.set_title("(f)")
 
         ax = axs[3, 0]
-        PR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor][tray], "PR") for tray in trays]
+        PR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "PR") for tray in trays]
         ax.scatter(trays, PR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("PR/mass (mol/kg)")
         ax.set_yscale("log")
         ax.set_title("(g)")
 
         ax = axs[3, 1]
-        OR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor][tray], "OR") for tray in trays]
+        OR_concs = [calculate_fragment_per_mass(film_simulations[perturbed_species, perturbed_factor, tray], "OR") for tray in trays]
         ax.scatter(trays, OR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list)))
         ax.set_ylabel("OR/mass (mol/kg)")
         ax.set_yscale("log")
