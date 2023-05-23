@@ -345,13 +345,6 @@ for i, spc in enumerate(liqspcs):
     elif "C" in spc.smiles or "c" in spc.smiles:
         Rs_id.append(i)
 
-Rs_labels = [liqspcs[i].label for i in Rs_id]
-ROOs_labels = [liqspcs[i].label for i in ROOs_id]
-ROs_labels = [liqspcs[i].label for i in ROs_id]
-Rs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in Rs_labels}
-ROOs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in ROOs_labels}
-ROs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in ROs_labels}
-
 # %%
 def find_R_ROO_and_RO(spc_list):
     R, ROO, RO = False, False, False
@@ -493,6 +486,13 @@ for tray in trays:
     conc[tray] = np.zeros(len(liqspcs))
     for label, idx in spc_label_index_dict.items():
         conc[tray][idx] = ss_mol_df.loc[tray, label] / Vliq
+
+Rs_labels = [liqspcs[i].label for i in Rs_id]
+ROOs_labels = [liqspcs[i].label for i in ROOs_id]
+ROs_labels = [liqspcs[i].label for i in ROs_id]
+Rs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in Rs_labels}
+ROOs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in ROOs_labels}
+ROs_mols = {label: [ss_mol_df.loc[tray, label] for tray in trays] for label in ROs_labels}
 
 # %%
 print("Getting detailed rates...")
