@@ -164,9 +164,9 @@ for species_ind, perturbed_species in enumerate(perturbed_species_list):
             diffusion_length_scales,
             color=factorcmap(factor_ind / len(perturbed_factor_list)),
         )
-        ax.set_ylim([1e-6, 1e-2])
+        ax.set_ylim([1e-6, 1e-3])
         ax.set_yscale("log")
-        ax.set_ylabel("Oxygen diffusion length (m)")
+        ax.set_ylabel("Oxygen effective length (m)")
         ax.set_xlabel("Trays")
 
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
