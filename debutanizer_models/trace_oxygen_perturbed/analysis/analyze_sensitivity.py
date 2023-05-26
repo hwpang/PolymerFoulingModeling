@@ -135,7 +135,7 @@ def calculate_oxygen_diffusion_length(df):
     diff = df.loc[n_rows - 1, "oxygen_diff"]
     conc = df.loc[n_rows - 1, "oxygen_conc"]
     flux = df.loc[n_rows - 1, "oxygen_flux"]
-    reaction_time_scale = conc / flux
+    reaction_time_scale = conc / np.abs(flux)
     return np.sqrt(diff * reaction_time_scale)
 
 
@@ -161,7 +161,7 @@ for species_ind, perturbed_species in enumerate(perturbed_species_list):
         )
 ax.set_yscale("log")
 ax.set_ylabel("Oxygen diffusion length (m)")
-ax.set_xlabel("Tray")
+ax.set_xlabel("Trays")
 
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
 sm = plt.cm.ScalarMappable(
