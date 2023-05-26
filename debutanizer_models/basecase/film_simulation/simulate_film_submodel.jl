@@ -396,7 +396,7 @@ else
             oxygen_concs[i] = u[domainliq.indexes[1]-1+oxygenindex] / Vliqinfilm0
 
             mu = domainliq.phase.solvent.mu(T)
-            oxygen_spc = domainliq.phase[oxygenindex]
+            oxygen_spc = domainliq.phase.species[oxygenindex]
             oxygen_diffs[i] = oxygen_spc.diffusion(T=T, mu=mu, P=1e8)
         end
 
