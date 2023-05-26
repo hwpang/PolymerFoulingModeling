@@ -413,7 +413,7 @@ else
         heffective = Inf
         if oxygen_conc > 0.0
             if oxygen_flux < 0.0
-                tau_chem = oxygen_conc / -oxygen_fluxe
+                tau_chem = oxygen_conc / -oxygen_flux
                 heffective = sqrt(tau_chem * oxygen_diff)
             end
         end
