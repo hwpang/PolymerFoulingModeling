@@ -140,7 +140,7 @@ for species_ind, perturbed_species in enumerate(perturbed_species_list):
         for tray in trays:
             oxygen_conc = oxygen_diffusion_results[
                 (perturbed_species, perturbed_factor, tray)
-            ]iloc[-1, "oxygen_conc"]
+            ].iloc[-1, "oxygen_conc"]
             oxygen_flux = oxygen_diffusion_results[
                 (perturbed_species, perturbed_factor, tray)
             ].iloc[-1, "oxygen_flux"]
