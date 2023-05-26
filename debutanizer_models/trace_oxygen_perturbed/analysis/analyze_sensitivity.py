@@ -135,10 +135,11 @@ def calculate_oxygen_diffusion_length(df):
     diff = df.loc[n_rows - 1, "oxygen_diff"]
     conc = df.loc[n_rows - 1, "oxygen_conc"]
     flux = df.loc[n_rows - 1, "oxygen_flux"]
-    if flux < 0.0:  # consumption rate
-        reaction_time_scale = conc / (-flux)
-        diffusion_length_scale = np.sqrt(diff * reaction_time_scale)
-        return diffusion_length_scale
+    if conc > 0.0:
+        if flux < 0.0:  # consumption rate
+            reaction_time_scale = conc / (-flux)
+            diffusion_length_scale = np.sqrt(diff * reaction_time_scale)
+            return diffusion_length_scale
 
     return 1e-18  # placeholder
 
