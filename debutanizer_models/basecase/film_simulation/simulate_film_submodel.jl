@@ -388,7 +388,7 @@ else
         for i in 1:length(sol.t)
             t = sol.t[i]
             u = sol.u[i]
-            sol.prob.f(du, u, t)
+            sol.prob.f(du, u, p, t)
 
             mass = u[end]
             Vsolidinfilm = mass / rho
