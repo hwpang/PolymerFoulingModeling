@@ -393,7 +393,7 @@ else
             mass = u[end]
             Vsolidinfilm = mass / rho
             oxygen_fluxes[i] = du[domainliq.indexes[1]-1+oxygenindex] / Vsolidinfilm
-            oxygen_concs[i] = u[domainliq.indexes[1]-1+oxygenindex] / Vliq
+            oxygen_concs[i] = u[domainliq.indexes[1]-1+oxygenindex] / Vliqinfilm0
 
             mu = domainliq.phase.mu(T)
             oxygen_spc = domainliq.phase[oxygenindex]
