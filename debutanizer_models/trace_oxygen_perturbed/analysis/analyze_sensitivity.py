@@ -145,6 +145,8 @@ factorcmap = plt.get_cmap("PuRd")
 fig, ax = plt.subplots(nrows=1, ncols=1)
 for species_ind, perturbed_species in enumerate(perturbed_species_list):
     for factor_ind, perturbed_factor in enumerate(perturbed_factor_list):
+        if perturbed_factor == "0.0":
+            continue
         diffusion_length_scales = [
             calculate_oxygen_diffusion_length(
                 oxygen_diffusion_results[(perturbed_species, perturbed_factor, tray)]
