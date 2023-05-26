@@ -367,24 +367,11 @@ else
     println("Solving film phase submodel with steady state fragment concentrations...")
 
     domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
-
     domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds, constantspecies=liqspcnames)
-
     inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns)
-
     react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
 
     @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol)
-
-    println("Saving film phase submodel results...")
-
-    df = DataFrame(sol)
-    rename!(df, names(df)[domainliq.indexes[1]+1:domainliq.indexes[2]+1] .=> liqspcnames)
-    rename!(df, names(df)[domainfilm.indexes[1]+1:domainfilm.indexes[2]+1] .=> filmspcnames)
-    rename!(df, names(df)[domainfilm.indexes[3]+1] .=> "mass")
-
-    CSV.write("$(save_directory)/simulation_film_$(tray).csv", df)
-    save_rop(sol)
 
     if model_name == "trace_oxygen_perturbed_debutanizer_model"
         # get oxygen flux in mol/(m^3*s) at each time point
@@ -418,7 +405,35 @@ else
         # save results as csv
         results = DataFrame(timestamp=sol.t, oxygen_flux=oxygen_fluxes, oxygen_conc=oxygen_concs, oxygen_diff=oxygen_diffs)
         CSV.write("$(save_directory)/simulation_film_$(tray)_oxygen.csv", results)
+
+        # solve with heffective
+        oxygen_flux = oxygen_fluxes[1]
+        oxygen_conc = oxygen_concs[1]
+        oxygen_diff = oxygen_diffs[1]
+        heffective = Inf
+        if oxygen_conc > 0.0
+            if oxygen_flux < 0.0
+                tau_chem = oxygen_conc / -oxygen_fluxe
+                heffective = sqrt(tau_chem * oxygen_diff)
+            end
+        end
+        domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
+        domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds, constantspecies=liqspcnames)
+        inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxnsm, heffective=heffective)
+        react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
+
+        @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol)
     end
+
+    println("Saving film phase submodel results...")
+
+    df = DataFrame(sol)
+    rename!(df, names(df)[domainliq.indexes[1]+1:domainliq.indexes[2]+1] .=> liqspcnames)
+    rename!(df, names(df)[domainfilm.indexes[1]+1:domainfilm.indexes[2]+1] .=> filmspcnames)
+    rename!(df, names(df)[domainfilm.indexes[3]+1] .=> "mass")
+
+    CSV.write("$(save_directory)/simulation_film_$(tray).csv", df)
+    save_rop(sol)
 end
 
 println("Done!")
