@@ -140,13 +140,13 @@ for species_ind, perturbed_species in enumerate(perturbed_species_list):
         for tray in trays:
             oxygen_conc = oxygen_diffusion_results[
                 (perturbed_species, perturbed_factor, tray)
-            ].loc[-1, "oxygen_conc"]
+            ]iloc[-1, "oxygen_conc"]
             oxygen_flux = oxygen_diffusion_results[
                 (perturbed_species, perturbed_factor, tray)
-            ].loc[-1, "oxygen_flux"]
+            ].iloc[-1, "oxygen_flux"]
             oxygen_diff = oxygen_diffusion_results[
                 (perturbed_species, perturbed_factor, tray)
-            ].loc[-1, "oxygen_diff"]
+            ].iloc[-1, "oxygen_diff"]
             reaction_time_scale = oxygen_conc / oxygen_flux
             diffusion_length_scale = np.sqrt(oxygen_diff * reaction_time_scale)
             diffusion_length_scales.append(diffusion_length_scale)
