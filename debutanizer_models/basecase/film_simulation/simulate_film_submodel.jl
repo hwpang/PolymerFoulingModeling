@@ -419,7 +419,7 @@ else
         end
         domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
         domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds, constantspecies=liqspcnames)
-        inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxnsm, heffective=heffective)
+        inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns, heffective=heffective)
         react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
 
         @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol)
