@@ -186,7 +186,7 @@ liqinitialconds["T"] = T
 liqinitialconds["V"] = Vliqinfilm0
 for name in names(liquid_steady_state_mols)
     if name * "(L)" in keys(liq_name_smiles)
-        smiles = liq_name_smiles[name * "(L)"]
+        smiles = liq_name_smiles[name*"(L)"]
         if occursin("O", smiles) && occursin("OXYGEN_0.0", liquid_simulation_results_path)
             conc = 0.0
         else
@@ -375,6 +375,35 @@ else
     react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
 
     @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol)
+
+    if model_name == "trace_oxygen_perturbed_debutanizer_model"
+        # get oxygen flux in mol/(m^3*s) at each time point
+        oxygen_fluxes = zeros(length(sol.t))
+        oxygen_concs = zeros(length(sol.t))
+        oxygen_diffs = zeros(length(sol.t))
+
+        du = zeros(length(sol(0.0)))
+        oxygenindex = findfirst(x -> x == "OXYGEN", liqspcnames)
+
+        for i in 1:length(sol.t)
+            t = sol.t[i]
+            u = sol.u[i]
+            sol.ode.f(du, u, t)
+
+            mass = u[end]
+            Vsolidinfilm = mass / rho
+            oxygen_fluxes[i] = du[domainliq.indexes[1]-1+oxygenindex] / Vsolidinfilm
+            oxygen_concs[i] = u[domainliq.indexes[1]-1+oxygenindex] / Vliq
+
+            mu = domainliq.phase.mu(T)
+            oxygen_spc = domainliq.phase[oxygenindex]
+            oxygen_diffs[i] = oxygen_spc.diffusion(T=T, mu=mu, P=1e8)
+        end
+
+        # save results as csv
+        results = DataFrame(timestamp=sol.t, oxygen_flux=oxygen_fluxes, oxygen_conc=oxygen_concs, oxygen_diff=oxygen_diffs)
+        CSV.write("$(save_directory)/simulation_film_$(tray)_oxygen.csv", results)
+    end
 
     println("Saving film phase submodel results...")
 
