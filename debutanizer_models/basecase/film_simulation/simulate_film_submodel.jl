@@ -383,7 +383,7 @@ else
         oxygen_diffs = zeros(length(sol.t))
 
         du = zeros(length(sol(0.0)))
-        oxygenindex = findfirst(x -> x == "OXYGEN", liqspcnames)
+        oxygenindex = findfirst(x -> x == "OXYGEN(L)", liqspcnames)
 
         for i in 1:length(sol.t)
             t = sol.t[i]
