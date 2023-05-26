@@ -130,26 +130,27 @@ def calculate_fragment_per_mass(df, label):
     return df.loc[n_rows - 1, label] / df.loc[n_rows - 1, "mass"]
 
 
+def calculate_oxygen_diffusion_length(df):
+    n_rows = len(df.index)
+    diff = df.loc[n_rows - 1, "oxygen_diff"]
+    conc = df.loc[n_rows - 1, "oxygen_conc"]
+    flux = df.loc[n_rows - 1, "oxygen_flux"]
+    reaction_time_scale = conc / flux
+    return np.sqrt(diff * reaction_time_scale)
+
+
 print("Plot oxygen diffusion length")
 
 factorcmap = plt.get_cmap("PuRd")
 fig, ax = plt.subplots(nrows=1, ncols=1)
 for species_ind, perturbed_species in enumerate(perturbed_species_list):
     for factor_ind, perturbed_factor in enumerate(perturbed_factor_list):
-        diffusion_length_scales = []
-        for tray in trays:
-            oxygen_conc = oxygen_diffusion_results[
-                (perturbed_species, perturbed_factor, tray)
-            ].iloc[-1, "oxygen_conc"]
-            oxygen_flux = oxygen_diffusion_results[
-                (perturbed_species, perturbed_factor, tray)
-            ].iloc[-1, "oxygen_flux"]
-            oxygen_diff = oxygen_diffusion_results[
-                (perturbed_species, perturbed_factor, tray)
-            ].iloc[-1, "oxygen_diff"]
-            reaction_time_scale = oxygen_conc / oxygen_flux
-            diffusion_length_scale = np.sqrt(oxygen_diff * reaction_time_scale)
-            diffusion_length_scales.append(diffusion_length_scale)
+        diffusion_length_scales = [
+            calculate_oxygen_diffusion_length(
+                oxygen_diffusion_results[(perturbed_species, perturbed_factor, tray)]
+            )
+            for tray in trays
+        ]
         ax.scatter(
             trays,
             diffusion_length_scales,
