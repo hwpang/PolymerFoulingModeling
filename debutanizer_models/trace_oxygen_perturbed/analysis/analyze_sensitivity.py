@@ -142,7 +142,7 @@ def calculate_oxygen_diffusion_length(df):
 print("Plot oxygen diffusion length")
 
 factorcmap = plt.get_cmap("PuRd")
-fig, ax = plt.subplots(nrows=1, ncols=1)
+fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6, 4))
 for species_ind, perturbed_species in enumerate(perturbed_species_list):
     for factor_ind, perturbed_factor in enumerate(perturbed_factor_list):
         if perturbed_factor == "0.0":
@@ -153,6 +153,7 @@ for species_ind, perturbed_species in enumerate(perturbed_species_list):
             )
             for tray in trays
         ]
+        print(diffusion_length_scales)
         ax.scatter(
             trays,
             diffusion_length_scales,
