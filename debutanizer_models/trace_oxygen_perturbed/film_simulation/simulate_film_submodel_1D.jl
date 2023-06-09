@@ -270,7 +270,7 @@ diffs = [x(T=T, mu=mu, P=1e8) for x in getfield.(liq.species,:diffusion)]
 function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dz)
     dy .= 0.0
 
-    liq_inds = react.domains[1].indexes[1]:react.domains[1].indexes[2]
+    liq_inds = react.domain[1].indexes[1]:react.domain[1].indexes[2]
     for j in 2:num_cells
         # reaction terms
         @views react.ode.f(dy[:, j], y[:, j], p, t)
