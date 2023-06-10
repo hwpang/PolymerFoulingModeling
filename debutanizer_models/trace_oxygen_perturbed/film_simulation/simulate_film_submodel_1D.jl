@@ -316,7 +316,7 @@ println("dy0z")
 display(unflatten(dy0z))
 
 nonlinearfcn = NonlinearFunction(f!; jac = jacobianyforwarddiff!)
-nonlinearprob = NonlinearProblem(nonlinearfcn, y0, p)
+nonlinearprob = NonlinearProblem(nonlinearfcn, y0z, p)
 recommendedsolver = NewtonRaphson()
 
 sol = solve(nonlinearprob, recommendedsolver, abstol=1e-18, reltol=1e-6)
