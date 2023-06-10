@@ -296,7 +296,7 @@ function jacobianyforwarddiff!(J, y, p, t)
 end
 
 function unflatten(y::AbstractVector)
-    return reshape(y, :, num_cells)
+    return reshape(y, num_variables, :)
 end
 
 num_variables = length(y0)
