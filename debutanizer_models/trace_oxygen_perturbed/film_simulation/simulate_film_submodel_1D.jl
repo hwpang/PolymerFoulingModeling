@@ -262,34 +262,39 @@ allrxncomments = [filmrxncomments; liqrxncomments; interrxncomments]
 
 # @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol);
 
-num_cells = 10
-dz = h / num_cells
+num_cells = 5
+dz0 = hfilm0 / num_cells
+dtheta = 1.0 / num_cells
 mu = liq.solvent.mu(T)
 diffs = [x(T=T, mu=mu, P=1e8) for x in getfield.(liq.species,:diffusion)]
 
-function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dz)
+function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, A)
     dy .= 0.0
-
     liq_inds = react.domain[2].indexes[1]:react.domain[2].indexes[2]
-    for j in 2:num_cells
+    @views h = sum(y[end, :])
+
+    for j in 1:num_cells
+
         # reaction terms
         @views react.ode.f(dy[:, j], y[:, j], p, t)
 
-        # liquid phase
+        # diffusion terms
         if j == num_cells
             # no flux condition at tray surface
             Jjp1half = 0.0
+        elseif j == 1
+            # C = Cbulk at boundary
+            nothing
         else
-            Jjp1half = - diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dz
+            Jjp1half = - diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dtheta
         end
-        Jjm1half = - diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dz
-        h  = y[end, j] / rho / A # film thickness
-        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dz .* h^2 # normalized x by film thickness
+        Jjm1half = - diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dtheta
+        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 # normalized x by film thickness
     end
 end
 
 function f!(dy, y, p, t)
-    f_film_growth!(unflatten(dy), unflatten(y), p, 0.0, react, num_cells, diffs, dz)
+    f_film_growth!(unflatten(dy), unflatten(y), p, 0.0, react, num_cells, diffs, dtheta, A)
 end
 
 function jacobianyforwarddiff!(J, y, p, t)
@@ -317,7 +322,7 @@ println("dy0z")
 display(unflatten(dy0z))
 
 odefcn = ODEFunction(f!)
-odeprob = ODEProblem(odefcn, y0z, (0.0, tf0), p)
+odeprob = ODEProblem(odefcn, y0z, (0.0, 1.0), p)
 
 @time sol = solve(odeprob, react.recommendedsolver, abstol=1e-18, reltol=1e-6)
 
