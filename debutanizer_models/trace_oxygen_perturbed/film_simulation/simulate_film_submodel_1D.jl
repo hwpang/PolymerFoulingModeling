@@ -321,7 +321,7 @@ display(unflatten(y0z))
 println("dy0z")
 display(unflatten(dy0z))
 
-odefcn = ODEFunction(f!)
+odefcn = ODEFunction(f!; jac=jacobianyforwarddiff!)
 odeprob = ODEProblem(odefcn, y0z, (0.0, 1.0), p)
 
 @time sol = solve(odeprob, react.recommendedsolver, abstol=1e-18, reltol=1e-6)
