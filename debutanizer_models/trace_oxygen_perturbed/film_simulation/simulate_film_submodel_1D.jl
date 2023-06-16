@@ -268,7 +268,7 @@ dtheta = 1.0 / num_cells
 mu = liq.solvent.mu(T)
 diffs = [x(T=T, mu=mu, P=1e8) for x in getfield.(liq.species,:diffusion)]
 
-function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, A)
+function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta)
     dy .= 0.0
     liq_inds = react.domain[2].indexes[1]:react.domain[2].indexes[2]
     @views h = sum(y[end, :])
@@ -278,23 +278,25 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, A)
         # reaction terms
         @views react.ode.f(dy[:, j], y[:, j], p, t)
 
-        # diffusion terms
-        if j == num_cells
-            # no flux condition at tray surface
-            Jjp1half = 0.0
-        elseif j == 1
+        # diffusion terms and boundary conditions
+        if j == 1
             # C = Cbulk at boundary
             nothing
         else
-            Jjp1half = - diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dtheta
+            if j == num_cells
+                # no flux condition at tray surface
+                Jjp1half = 0.0
+            else
+                Jjp1half = - diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dtheta
+            end
+            Jjm1half = - diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dtheta
+            @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 # normalized x by film thickness
         end
-        Jjm1half = - diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dtheta
-        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 # normalized x by film thickness
     end
 end
 
 function f!(dy, y, p, t)
-    f_film_growth!(unflatten(dy), unflatten(y), p, 0.0, react, num_cells, diffs, dtheta, A)
+    f_film_growth!(unflatten(dy), unflatten(y), p, 0.0, react, num_cells, diffs, dtheta)
 end
 
 function jacobianyforwarddiff!(J, y, p, t)
