@@ -261,10 +261,39 @@ interrxncomments = getfield.(inter.reactions, :comment)
 allrxnstrs = [filmrxnstrs; liqrxnstrs; interrxnstrs]
 allrxncomments = [filmrxncomments; liqrxncomments; interrxncomments]
 
-# @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol);
+@time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol)
+
+println("Initializing fragment concentrations with steady state fragment concentrations...")
+
+for fragment in fragmentnames
+    if fragment != "inert(S)"
+        println(fragment, " (mol/mass): ", filminitialconds[fragment] / mass0, " ", df[end, fragment] / df[end, "mass"])
+        filminitialconds[fragment] = df[end, fragment] / df[end, "mass"] * mass0
+    end
+end
+
+println("Solving film phase submodel with steady state fragment concentrations...")
 
 num_cells = 5
 dtheta = 1.0 / num_cells
+
+for (key, value) in filminitialconds
+    if key != "A" && key != "T" && key != "rho"
+        filminitialconds[key] = value / num_cells
+    end
+end
+
+for (key, value) in liqinitialconds
+    if key != "T"
+        liqinitialconds[key] = value / num_cells
+    end
+end
+
+domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
+domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds)
+inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns)
+react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
+
 mu = liq.solvent.mu(T)
 diffs = [x(T=T, mu=mu, P=1e8) for x in getfield.(liq.species,:diffusion)]
 
@@ -306,7 +335,7 @@ num_variables = length(y0)
 y0z = zeros(num_variables, num_cells)
 
 for j in 1:num_cells
-    y0z[:, j] .= y0 ./ num_cells
+    y0z[:, j] .= y0
 end
 
 y0z = reshape(y0z, :)

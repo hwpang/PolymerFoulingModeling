@@ -38,6 +38,19 @@ print("simulation_directory: ", simulation_directory)
 
 trays = range(1, 41)
 selected_trays = [1, 10, 20, 30, 40]
+rho = 900.0
+d = 2.5
+h = 0.3
+A = (d / 2)**2 * np.pi
+Vliq = A * h
+spacing = 0.6
+Vgas = A * (spacing - h)
+hfilm0 = 1e-5
+epsilon = 0.2 #vol% of liquid in swollen film
+rho = 900.0 #density of solid
+Vfilm0 = A * hfilm0
+Vsolidinfilm0 = Vfilm0 * (1 - epsilon)
+Vliqinfilm0 = Vfilm0 * epsilon
 
 print("Load 1-D film simulation results")
 
@@ -49,8 +62,11 @@ for tray in trays:
 print("Plot 1-D film simulation results")
 nrows = len(selected_trays)
 ncols = 1
+num_cells = 5
 
 fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
 
 for ind, tray in enumerate(selected_trays):
+    simulation = one_d_simulations[tray]
+    zs = np.cumsum(np.array([simulation.iloc[len(simulation.index), f"mass_cell_{cell_ind}"] for cell_ind in range(num_cells)]) / rho / A)
     axs[ind].plot()
