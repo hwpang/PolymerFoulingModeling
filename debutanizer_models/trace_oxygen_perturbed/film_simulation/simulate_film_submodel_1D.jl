@@ -263,15 +263,14 @@ allrxncomments = [filmrxncomments; liqrxncomments; interrxncomments]
 # @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol);
 
 num_cells = 5
-dz0 = hfilm0 / num_cells
 dtheta = 1.0 / num_cells
 mu = liq.solvent.mu(T)
 diffs = [x(T=T, mu=mu, P=1e8) for x in getfield.(liq.species,:diffusion)]
 
-function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta)
+function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A)
     dy .= 0.0
     liq_inds = react.domain[2].indexes[1]:react.domain[2].indexes[2]
-    @views h = sum(y[end, :])
+    @views h = (sum(y[end, :]) / rho / A)
 
     for j in 1:num_cells
 
@@ -296,7 +295,7 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta)
 end
 
 function f!(dy, y, p, t)
-    f_film_growth!(unflatten(dy), unflatten(y), p, t, react, num_cells, diffs, dtheta)
+    f_film_growth!(unflatten(dy), unflatten(y), p, t, react, num_cells, diffs, dtheta, rho, A)
 end
 
 function jacobianyforwarddiff!(J, y, p, t)
