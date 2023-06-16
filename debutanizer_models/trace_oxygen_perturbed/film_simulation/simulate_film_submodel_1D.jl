@@ -273,7 +273,7 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A)
     liq_inds = react.domain[2].indexes[1]:react.domain[2].indexes[2]
     @views h = (sum(y[end, :]) / rho / A)
 
-    for j in 1:num_cells
+    for j in 2:num_cells
 
         # reaction terms
         @views react.ode.f(dy[:, j], y[:, j], p, t)
