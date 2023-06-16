@@ -70,12 +70,12 @@ fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(9, 12), sharex=True)
 
 for ind, tray in enumerate(selected_trays):
     simulation = one_d_simulations[tray]
-    masses = np.array([simulation.iloc[len(simulation.index), f"mass_cell_{cell_ind}"] for cell_ind in range(num_cells)])
+    masses = np.array([simulation.iloc[len(simulation.index)-1, f"mass_cell_{cell_ind}"] for cell_ind in range(num_cells)])
     Vsolidinfilm = masses / rho
     Vliqinfilm = Vsolidinfilm / (1 - epsilon) * epsilon
     Vfilm = Vsolidinfilm + Vliqinfilm
     zs = np.cumsum(Vfilm / A)
-    concs = np.array([simulation.iloc[len(simulation.index), f"AR_cell_{cell_ind}"] for cell_ind in range(num_cells)]) / Vsolidinfilm
+    concs = np.array([simulation.iloc[len(simulation.index)-1, f"AR_cell_{cell_ind}"] for cell_ind in range(num_cells)]) / Vsolidinfilm
     axs[ind].plot(zs, concs)
     axs[ind].set_ylabel(f"Tray {tray}")
 
