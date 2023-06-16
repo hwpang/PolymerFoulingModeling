@@ -283,7 +283,8 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dz)
             Jjp1half = - diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dz
         end
         Jjm1half = - diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dz
-        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dz
+        h  = y[end, j] / rho / A # film thickness
+        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dz .* h^2 # normalized x by film thickness
     end
 end
 
@@ -303,7 +304,7 @@ num_variables = length(y0)
 y0z = zeros(num_variables, num_cells)
 
 for j in 1:num_cells
-    y0z[:, j] .= y0
+    y0z[:, j] .= y0 ./ num_cells
 end
 
 y0z = reshape(y0z, :)
@@ -315,9 +316,8 @@ display(unflatten(y0z))
 println("dy0z")
 display(unflatten(dy0z))
 
-nonlinearfcn = NonlinearFunction(f!; jac = jacobianyforwarddiff!)
-nonlinearprob = NonlinearProblem(nonlinearfcn, y0z, p)
-recommendedsolver = NewtonRaphson()
+odefcn = ODEFunction(f!)
+odeprob = ODEProblem(odefcn, y0z, (0.0, tf0), p)
 
-sol = solve(nonlinearprob, recommendedsolver, abstol=1e-18, reltol=1e-6)
+@time sol = solve(odeprob, react.recommendedsolver, abstol=1e-18, reltol=1e-6)
 
