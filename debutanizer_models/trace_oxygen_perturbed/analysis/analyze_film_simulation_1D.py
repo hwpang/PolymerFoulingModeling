@@ -36,8 +36,10 @@ def parse_arguments():
 print("model_name: ", model_name)
 print("simulation_directory: ", simulation_directory)
 
-trays = range(1, 41)
-selected_trays = [1, 10, 20, 30, 40]
+# trays = range(1, 41)
+trays = [1]
+# selected_trays = [1, 10, 20, 30, 40]
+selected_trays = [1]
 rho = 900.0
 d = 2.5
 h = 0.3
