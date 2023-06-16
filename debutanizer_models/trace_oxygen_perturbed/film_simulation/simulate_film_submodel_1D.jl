@@ -330,8 +330,10 @@ cell_names = Array{String,2}(undef, num_variables, num_cells)
 for j in 1:num_cells
     cell_names[domainliq.indexes[1]:domainliq.indexes[2], j] .= liqspcnames .* "_cell_" .* string(j)
     cell_names[domainfilm.indexes[1]:domainfilm.indexes[2], j] .= filmspcnames .* "_cell_" .* string(j)
-    cell_names[domainfilm.indexes[3], j] .= "mass_cell_" .* string(j)
+    cell_names[domainfilm.indexes[3], j] = "mass_cell_" .* string(j)
 end
+
+cell_names = reshape(cell_names, :)
 rename!(df, names(df)[2:end] .=> cell_names)
 
 path = "$(save_directory)/simulation_film_1D_$(tray).csv"
