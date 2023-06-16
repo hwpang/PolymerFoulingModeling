@@ -12,6 +12,7 @@ using ReactionMechanismSimulator.SciMLBase
 using ReactionMechanismSimulator.Sundials
 using ReactionMechanismSimulator.YAML
 using ReactionMechanismSimulator.SparseArrays
+using ReactionMechanismSimulator.ForwardDiff
 
 # read in command line arguments
 rms_mech_path = ARGS[1]
