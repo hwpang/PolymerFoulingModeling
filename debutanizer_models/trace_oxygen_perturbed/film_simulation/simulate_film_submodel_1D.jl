@@ -298,13 +298,16 @@ react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (int
 mu = liq.solvent.mu(T)
 diffs = [x(T=T, mu=mu, P=1e8) for x in getfield.(liq.species,:diffusion)]
 
-function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A, Cbulk)
+function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, Cbulk)
     dy .= 0.0
-    liq_inds = react.domain[2].indexes[1]:react.domain[2].indexes[2]
-    @views h = (sum(y[end, :]) / rho / A)
+    domainfilm = domainfilm
+    domainliq = domainliq
+    liq_inds = domainliq.indexes[1]:domainliq.indexes[2]
+    @views h = (sum(y[domainfilm.indexes[3], :]) / domainfilm.rho / domainfilm.A)
 
     for j in 1:num_cells
-        Vhat = y[end, j] / rho
+        Vhatsolidinfilm = y[domainfilm.indexes[3], j] / rho
+        Vhatliquidinfilm = y[domainliq.indexes[3], j]
 
         # reaction terms
         @views react.ode.f(dy[:, j], y[:, j], p, t)
@@ -315,17 +318,17 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A, Cb
             Jjp1half = 0.0
         elseif j == 1
             # C = C bulk at top of film
-            Jjp1half = -diffs .* (Cbulk[liq_inds] .- y[liq_inds, j] / Vhat) ./ dtheta
+            Jjp1half = -diffs .* (Cbulk[liq_inds] .- y[liq_inds, j] / Vhatliquidinfilm) ./ dtheta
         else
-            Jjp1half = -diffs .* (y[liq_inds, j+1] / Vhat .- y[liq_inds, j] / Vhat) ./ dtheta
+            Jjp1half = -diffs .* (y[liq_inds, j+1] / Vhatliquidinfilm .- y[liq_inds, j] / Vhatliquidinfilm) ./ dtheta
         end
-        Jjm1half = -diffs .* (y[liq_inds, j] / Vhat .- y[liq_inds, j-1] / Vhat) ./ dtheta
-        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 * Vhat # normalized x by film thickness
+        Jjm1half = -diffs .* (y[liq_inds, j] / Vhatliquidinfilm .- y[liq_inds, j-1] / Vhatliquidinfilm) ./ dtheta
+        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 * Vhatliquidinfilm # normalized x by film thickness
     end
 end
 
 function f!(dy, y, p, t)
-    f_film_growth!(unflatten(dy), unflatten(y), p, t, react, num_cells, diffs, dtheta, rho, A, Cbulk)
+    f_film_growth!(unflatten(dy), unflatten(y), p, t, react, num_cells, diffs, dtheta, Cbulk)
 end
 
 function jacobianyforwarddiff!(J, y, p, t)
