@@ -318,11 +318,11 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, Cbulk)
             Jjp1half = 0.0
         elseif j == 1
             # C = C bulk at top of film
-            Jjp1half = -diffs .* (Cbulk[liq_inds] .- y[liq_inds, j] / Vhatliquidinfilm) ./ dtheta
+            @views Jjp1half = -diffs .* (Cbulk[liq_inds] .- y[liq_inds, j] / Vhatliquidinfilm) ./ dtheta
         else
-            Jjp1half = -diffs .* (y[liq_inds, j+1] / Vhatliquidinfilm .- y[liq_inds, j] / Vhatliquidinfilm) ./ dtheta
+            @views Jjp1half = -diffs .* (y[liq_inds, j+1] / Vhatliquidinfilm .- y[liq_inds, j] / Vhatliquidinfilm) ./ dtheta
         end
-        Jjm1half = -diffs .* (y[liq_inds, j] / Vhatliquidinfilm .- y[liq_inds, j-1] / Vhatliquidinfilm) ./ dtheta
+        @views Jjm1half = -diffs .* (y[liq_inds, j] / Vhatliquidinfilm .- y[liq_inds, j-1] / Vhatliquidinfilm) ./ dtheta
         @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 * Vhatliquidinfilm # normalized x by film thickness
     end
 end
