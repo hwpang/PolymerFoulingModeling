@@ -296,7 +296,7 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta)
 end
 
 function f!(dy, y, p, t)
-    f_film_growth!(unflatten(dy), unflatten(y), p, 0.0, react, num_cells, diffs, dtheta)
+    f_film_growth!(unflatten(dy), unflatten(y), p, t, react, num_cells, diffs, dtheta)
 end
 
 function jacobianyforwarddiff!(J, y, p, t)
