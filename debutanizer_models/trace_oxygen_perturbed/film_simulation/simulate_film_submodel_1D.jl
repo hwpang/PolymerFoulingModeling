@@ -328,3 +328,14 @@ odeprob = ODEProblem(odefcn, y0z, (0.0, 1.0), p)
 
 @time sol = solve(odeprob, react.recommendedsolver, abstol=1e-18, reltol=1e-6)
 
+# save results
+
+df = DataFrame(sol)
+cell_names = Array{String,2}(undef, num_variables, num_cells)
+for j in 1:num_cells
+    cell_names[domainliq.indexes[1]+1:domainliq.indexes[2]+1, j] .= liqspcnames .* "_cell_" .* string(j)
+    cell_names[domainfilm.indexes[1]+1:domainfilm.indexes[2]+1, j] .= filmspcnames .* "_cell_" .* string(j)
+    cell_names[domainfilm.indexes[3]+1, j] .= "mass_cell_" .* string(j)
+end
+rename!(df, names(df) .=> cell_names)
+CSV.write("$(save_directory)/simulation_film_1D_$(tray).csv", df)
