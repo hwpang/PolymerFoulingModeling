@@ -279,19 +279,14 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A)
         @views react.ode.f(dy[:, j], y[:, j], p, t)
 
         # diffusion terms and boundary conditions
-        if j == 1
-            # C = Cbulk at boundary
-            nothing
+        if j == num_cells
+            # no flux condition at tray surface
+            Jjp1half = 0.0
         else
-            if j == num_cells
-                # no flux condition at tray surface
-                Jjp1half = 0.0
-            else
-                Jjp1half = - diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dtheta
-            end
-            Jjm1half = - diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dtheta
-            @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 # normalized x by film thickness
+            Jjp1half = -diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dtheta
         end
+        Jjm1half = -diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dtheta
+        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 # normalized x by film thickness
     end
 end
 
@@ -338,4 +333,8 @@ for j in 1:num_cells
     cell_names[domainfilm.indexes[3]+1, j] .= "mass_cell_" .* string(j)
 end
 rename!(df, names(df) .=> cell_names)
-CSV.write("$(save_directory)/simulation_film_1D_$(tray).csv", df)
+
+path = "$(save_directory)/simulation_film_1D_$(tray).csv"
+println("Saving results to $(path)")
+CSV.write(path, df)
+println("Done!")
