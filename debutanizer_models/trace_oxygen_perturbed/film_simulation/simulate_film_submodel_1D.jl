@@ -276,6 +276,7 @@ println("Solving film phase submodel with steady state fragment concentrations..
 
 num_cells = 5
 dtheta = 1.0 / num_cells
+Cbulk = y0 / Vliqinfilm0
 
 for (key, value) in filminitialconds
     if key != "A" && key != "T" && key != "rho"
@@ -290,19 +291,20 @@ for (key, value) in liqinitialconds
 end
 
 domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
-domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds)
+domainliq, y0liq, pliq = ConstantTLiqFilmDomain(phase=liq, initialconds=liqinitialconds)
 inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns)
 react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
 
 mu = liq.solvent.mu(T)
 diffs = [x(T=T, mu=mu, P=1e8) for x in getfield.(liq.species,:diffusion)]
 
-function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A)
+function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A, Cbulk)
     dy .= 0.0
     liq_inds = react.domain[2].indexes[1]:react.domain[2].indexes[2]
     @views h = (sum(y[end, :]) / rho / A)
 
-    for j in 2:num_cells
+    for j in 1:num_cells
+        Vhat = y[end, j] / rho
 
         # reaction terms
         @views react.ode.f(dy[:, j], y[:, j], p, t)
@@ -311,16 +313,19 @@ function f_film_growth!(dy, y, p, t, react, num_cells, diffs, dtheta, rho, A)
         if j == num_cells
             # no flux condition at tray surface
             Jjp1half = 0.0
+        elseif j == 1
+            # C = C bulk at top of film
+            Jjp1half = -diffs .* (Cbulk[liq_inds] .- y[liq_inds, j] / Vhat) ./ dtheta
         else
-            Jjp1half = -diffs .* (y[liq_inds, j+1] .- y[liq_inds, j]) ./ dtheta
+            Jjp1half = -diffs .* (y[liq_inds, j+1] / Vhat .- y[liq_inds, j] / Vhat) ./ dtheta
         end
-        Jjm1half = -diffs .* (y[liq_inds, j] .- y[liq_inds, j-1]) ./ dtheta
-        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 # normalized x by film thickness
+        Jjm1half = -diffs .* (y[liq_inds, j] / Vhat .- y[liq_inds, j-1] / Vhat) ./ dtheta
+        @views dy[liq_inds, j] .+= (Jjp1half .- Jjm1half) ./ dtheta .* h^2 * Vhat # normalized x by film thickness
     end
 end
 
 function f!(dy, y, p, t)
-    f_film_growth!(unflatten(dy), unflatten(y), p, t, react, num_cells, diffs, dtheta, rho, A)
+    f_film_growth!(unflatten(dy), unflatten(y), p, t, react, num_cells, diffs, dtheta, rho, A, Cbulk)
 end
 
 function jacobianyforwarddiff!(J, y, p, t)
