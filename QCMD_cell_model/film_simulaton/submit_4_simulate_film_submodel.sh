@@ -16,13 +16,11 @@ model_name="QCMD_cell_model"
 jobs=()
 perturb_factor_list=("0.0" "1e-3" "1e-2" "1e-1" "1e0")
 
-for perturb_factor in "${perturb_factor_list[@]}"
-do
+for perturb_factor in "${perturb_factor_list[@]}"; do
     jobs+=("$perturb_factor")
 done
 
-for jobind in `seq $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_COUNT ${#jobs[@]}`
-do
+for jobind in $(seq $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_COUNT ${#jobs[@]}); do
     echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
     echo "SLURM_ARRAY_TASK_COUNT: $SLURM_ARRAY_TASK_COUNT"
     echo "jobind: $jobind"
@@ -31,12 +29,12 @@ do
     echo "perturb_factor: $perturb_factor"
     liquid_simulation_results_path="simulation_results/O2_$perturb_factor/simulation_liquid_1.csv"
     echo "liquid_simulation_results_path: $liquid_simulation_results_path"
-    start=`date +%s`
+    start=$(date +%s)
     julia $PFM_PATH/debutanizer_models/basecase/film_simulation/simulate_film_submodel.jl \
-            $rms_path \
-            $model_name \
-            $liquid_simulation_results_path
-    end=`date +%s`
-    runtime=$((end-start))
+        $rms_path \
+        $model_name \
+        $liquid_simulation_results_path
+    end=$(date +%s)
+    runtime=$((end - start))
     echo "runtime: $runtime"
 done
