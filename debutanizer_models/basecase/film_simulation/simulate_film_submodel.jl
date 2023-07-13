@@ -13,7 +13,7 @@ using ReactionMechanismSimulator.YAML
 using ReactionMechanismSimulator.SparseArrays
 
 # read in command line arguments
-rms_mech_path = ARGS[1]
+rms_mech_directory = ARGS[1]
 model_name = ARGS[2]
 liquid_simulation_results_path = ARGS[3]
 
@@ -25,7 +25,7 @@ elseif model_name == "QCMD_cell_model"
     nothing
 end
 
-println("rms_mech_path: $(rms_mech_path)")
+println("rms_mech_directory: $(rms_mech_directory)")
 println("model_name: $(model_name)")
 println("liquid_simulation_results_path: $(liquid_simulation_results_path)")
 if model_name == "basecase_debutanizer_model"
@@ -33,8 +33,6 @@ if model_name == "basecase_debutanizer_model"
 end
 
 # set up paths
-rms_mech_directory = dirname(rms_mech_path)
-println("rms_mech_directory: $(rms_mech_directory)")
 save_directory = dirname(liquid_simulation_results_path)
 println("save_directory: $(save_directory)")
 liquid_species_mapping_path = joinpath(rms_mech_directory, "liquid_species_mapping.yml")
@@ -59,7 +57,7 @@ if model_name == "basecase_debutanizer_model"
     Vsolidinfilm0 = Vfilm0 * (1 - epsilon)
     Vliqinfilm0 = Vfilm0 * epsilon
 
-    tf0 = 3600 * 24 * 365 * 500
+    tf0 = 3600 * 24 * 365 * 10
     tf = 3600 * 24 * 365
 
     trays = 1:40
@@ -82,7 +80,7 @@ elseif model_name == "QCMD_cell_model"
     Vsolidinfilm0 = A * hsolid0
     Vliqinfilm0 = Vsolidinfilm0 / (1 - epsilon) * epsilon
 
-    tf0 = 10000.0
+    tf0 = 3600.0
 
     trays = 1:1
     Ts = [90.0 + 273.15]
@@ -200,6 +198,7 @@ else
     filminitialconds["AR"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["allylic_C.(L)"]]) / liqtotalmass * mass0
     filminitialconds["KR"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["alkyl_C.(L)"]]) / liqtotalmass * mass0
     filminitialconds["CDB"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["C=C(L)"]]) / liqtotalmass * mass0
+    filminitialconds["CD"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["conjugated_diene(L)"]]) / liqtotalmass * mass0
 
     if include_oxygen
         filminitialconds["PR"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["COO.(L)"]]) / liqtotalmass * mass0
@@ -266,10 +265,8 @@ function save_rop(sol)
         rxnind, spcind, rop = findnz(ropmat)
         no_nan = any((isnan).(rop)) == false
         println("No NaN ", no_nan)
-        no_large = all((abs).(rop) .< 1) == true
-        println("No large ", no_large)
 
-        if no_nan && no_large
+        if no_nan
 
             rxnind = trunc.(Int, rxnind)
             spcind = trunc.(Int, spcind)
@@ -292,7 +289,17 @@ function save_rop(sol)
             no_neg_rop = all((rops .>= 0) .|| occursin.("<=>", rop_rxncomments)) # positive rop except for reversible reactions
             println("No negative rop ", no_neg_rop)
 
-            if no_neg_rop
+            ind_max = argmax(rops)
+            println("Max rop ", rops[ind_max])
+            println("Max rop rxn ", rop_rxnstrs[ind_max])
+            println("Max rop rxn comment ", rop_rxncomments[ind_max])
+            if model_name == "basecase_debutanizer_model"
+                check_max_rxn = occursin("CYCLOPENTADIENE(L) + CDB Diels-Alder addition", rop_rxncomments[ind_max]) || occursin("1,3-BUTADIENE(L) + AR radical addition", rop_rxncomments[ind_max])
+            else
+                check_max_rxn = true
+            end
+
+            if no_neg_rop && check_max_rxn
 
                 CSV.write("$(save_directory)/simulation_film_rop_$(tray).csv", df_rop, quotestrings=true)
 
