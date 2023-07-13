@@ -125,18 +125,18 @@ STYRENE(8)
 15 H u0 p0 c0 {8,S}
 16 H u0 p0 c0 {8,S}
 
-H(9)
+[H](9)
 multiplicity 2
 1 H u1 p0 c0
 
-H2(10)
+[H][H](10)
 1 H u0 p0 c0 {2,S}
 2 H u0 p0 c0 {1,S}
 
-Ar(11)
+[Ar](11)
 1 Ar u0 p4 c0
 
-He(12)
+[He](12)
 1 He u0 p1 c0
 
 C9H12(13)
@@ -7368,7 +7368,7 @@ C9H14(274)
 22 H u0 p0 c0 {8,S}
 23 H u0 p0 c0 {9,S}
 
-CH2(275)
+[CH2](275)
 1 C u0 p1 c0 {2,S} {3,S}
 2 H u0 p0 c0 {1,S}
 3 H u0 p0 c0 {1,S}
@@ -7386,7 +7386,7 @@ CCC(276)
 10 H u0 p0 c0 {3,S}
 11 H u0 p0 c0 {3,S}
 
-CH3(277)
+[CH3](277)
 multiplicity 2
 1 C u1 p0 c0 {2,S} {3,S} {4,S}
 2 H u0 p0 c0 {1,S}
