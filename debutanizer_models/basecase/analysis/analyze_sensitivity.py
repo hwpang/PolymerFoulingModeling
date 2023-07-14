@@ -165,8 +165,6 @@ def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
 
 print("Plotting all sensitivity simulation results...")
 
-normalized_fouling_chemistry_contribution = calculate_fouling_chemistry_contribution(film_rop_results, normalize=True)
-
 factorcmap = plt.get_cmap("PuRd")
 nrows = 5
 ncols = 2
@@ -174,6 +172,8 @@ markers = ["x", "v", "D", "P", "X", "8", "p", "*", "h", "H", "d"]
 # cmaps = ["Blues", "Greens", "Purples", "Oranges"]
 fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True)
 if model_name == "basecase_debutanizer_model":
+    normalized_fouling_chemistry_contribution = calculate_fouling_chemistry_contribution(film_rop_results, normalize=True)
+    
     for species_ind, perturbed_species in enumerate(perturbed_species_list):
         for factor_ind, perturbed_factor in enumerate(perturbed_factor_list):
             ax = axs[0, species_ind]
