@@ -270,7 +270,7 @@ else:
 os.makedirs("liquid_mechanism", exist_ok=True)
 
 save_chemkin_file(
-    f"liquid_mechanism/chem_annotated_updated{suffix}.inp",
+    f"liquid_mechanism/chem_annotated{suffix}.inp",
     model.core.species,
     model.core.reactions,
     verbose=True,
@@ -278,7 +278,7 @@ save_chemkin_file(
 )
 
 save_species_dictionary(
-    f"liquid_mechanism/species_dictionary_updated{suffix}.txt",
+    f"liquid_mechanism/species_dictionary{suffix}.txt",
     model.core.species,
 )
 
@@ -289,7 +289,7 @@ write_yml(
     rxns=model.core.reactions,
     solvent=rmg.solvent,
     solvent_data=diffusion_limiter.solvent_data,
-    path=f"liquid_mechanism/chem_updated{suffix}.rms",
+    path=f"liquid_mechanism/chem{suffix}.rms",
 )
 
 print("Done!")

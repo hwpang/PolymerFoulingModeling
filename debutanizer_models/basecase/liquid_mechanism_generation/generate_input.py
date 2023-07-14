@@ -2,17 +2,31 @@ import argparse
 import yaml
 import numpy as np
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--aspen_condition_path', type=str, required=True, help='Path to the yaml file containing Aspen conditions')
+    parser.add_argument(
+        "--aspen_condition_path",
+        type=str,
+        required=True,
+        help="Path to the yaml file containing Aspen conditions",
+    )
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        required=True,
+        help="Name of the model",
+    )
 
     args = parser.parse_args()
     aspen_condition_path = args.aspen_condition_path
-    return aspen_condition_path
+    model_name = args.model_name
+    return aspen_condition_path, model_name
 
-aspen_condition_path = parse_arguments()
 
-with open(aspen_condition_path, 'r') as f:
+aspen_condition_path, model_name = parse_arguments()
+
+with open(aspen_condition_path, "r") as f:
     aspen_conditions = yaml.load(f, Loader=yaml.FullLoader)
 
 # Generate the RMG-Py input file for liquid phase mechanism generation
@@ -79,6 +93,15 @@ species(
 )
 """
 
+if model_name == "trace_oxygen_perturbed_debutanizer_model":
+    input_string += """
+species(
+    label='OXYGEN',
+    reactive=True,
+    structure=SMILES("[O][O]"),
+)
+"""
+
 reactor_string = """
 # tray {tray_number}
 constantTVLiquidReactor(
@@ -101,37 +124,92 @@ h = 0.3
 A = (d / 2) ** 2 * np.pi
 Vliq = A * h
 
-major_species = ['N-BUTANE', '2-BUTENE', '1,3-BUTADIENE', 'CYCLOPENTADIENE', 'BENZENE', '1,3-CYCLOHEXADIENE', 'TOLUENE', 'STYRENE']
+major_species = [
+    "N-BUTANE",
+    "2-BUTENE",
+    "1,3-BUTADIENE",
+    "CYCLOPENTADIENE",
+    "BENZENE",
+    "1,3-CYCLOHEXADIENE",
+    "TOLUENE",
+    "STYRENE",
+]
 
 for tray in trays:
-    initial_concentrations = ''
+    initial_concentrations = ""
     for species in major_species:
-        concentrations = aspen_conditions['liquid_concentration'][species]
-        initial_concentrations += f"        '{species}': ({concentrations[tray]}, 'mol/m^3'),"
-        initial_concentrations += '\n'
-    if tray+1 == len(trays):
-        residence_time = Vliq/aspen_conditions["liquid_outlet_volumetric_flowrate"][tray-1] # use the inlet flow to calculate liquid residence time for reboiler instead, as most of the liquid evaporates
+        concentrations = aspen_conditions["liquid_concentration"][species]
+        initial_concentrations += (
+            f"        '{species}': ({concentrations[tray]}, 'mol/m^3'),"
+        )
+        initial_concentrations += "\n"
+    if tray + 1 == len(trays):
+        residence_time = (
+            Vliq / aspen_conditions["liquid_outlet_volumetric_flowrate"][tray - 1]
+        )  # use the inlet flow to calculate liquid residence time for reboiler instead, as most of the liquid evaporates
     else:
-        residence_time = Vliq/aspen_conditions["liquid_outlet_volumetric_flowrate"][tray]
+        residence_time = (
+            Vliq / aspen_conditions["liquid_outlet_volumetric_flowrate"][tray]
+        )
     print(initial_concentrations)
-    vapor_mole_fractions = ''
+    vapor_mole_fractions = ""
     total_vapor_concentration = 0
     for species in major_species:
-        concentrations = aspen_conditions['vapor_concentration'][species]
+        concentrations = aspen_conditions["vapor_concentration"][species]
         total_vapor_concentration += concentrations[tray]
     for species in major_species:
-        concentrations = aspen_conditions['vapor_concentration'][species]
-        vapor_mole_fractions += f"        '{species}': {concentrations[tray]/total_vapor_concentration},"
-        vapor_mole_fractions += '\n'
+        concentrations = aspen_conditions["vapor_concentration"][species]
+        vapor_mole_fractions += (
+            f"        '{species}': {concentrations[tray]/total_vapor_concentration},"
+        )
+        vapor_mole_fractions += "\n"
     print(vapor_mole_fractions)
     input_string += reactor_string.format(
-        tray_number=tray+1,
+        tray_number=tray + 1,
         temperature=aspen_conditions["T"][tray],
         initial_concentrations=initial_concentrations,
         residence_time=residence_time,
         vapor_pressure=aspen_conditions["P"][tray],
         vapor_mole_fractions=vapor_mole_fractions,
     )
+
+    if model_name == "trace_oxygen_perturbed_debutanizer_model":
+        initial_concentrations = ""
+        for species in major_species + ["OXYGEN"]:
+            concentrations = aspen_conditions["liquid_concentration"][species]
+            initial_concentrations += (
+                f"        '{species}': ({concentrations[tray]}, 'mol/m^3'),"
+            )
+            initial_concentrations += "\n"
+        if tray + 1 == len(trays):
+            residence_time = (
+                Vliq / aspen_conditions["liquid_outlet_volumetric_flowrate"][tray - 1]
+            )  # use the inlet flow to calculate liquid residence time for reboiler instead, as most of the liquid evaporates
+        else:
+            residence_time = (
+                Vliq / aspen_conditions["liquid_outlet_volumetric_flowrate"][tray]
+            )
+        print(initial_concentrations)
+        vapor_mole_fractions = ""
+        total_vapor_concentration = 0
+        for species in major_species + ["OXYGEN"]:
+            concentrations = aspen_conditions["vapor_concentration"][species]
+            total_vapor_concentration += concentrations[tray]
+        for species in major_species + ["OXYGEN"]:
+            concentrations = aspen_conditions["vapor_concentration"][species]
+            vapor_mole_fractions += (
+                f"        '{species}': {concentrations[tray]/total_vapor_concentration},"
+            )
+            vapor_mole_fractions += "\n"
+        print(vapor_mole_fractions)
+        input_string += reactor_string.format(
+            tray_number=tray + 1,
+            temperature=aspen_conditions["T"][tray],
+            initial_concentrations=initial_concentrations,
+            residence_time=residence_time,
+            vapor_pressure=aspen_conditions["P"][tray],
+            vapor_mole_fractions=vapor_mole_fractions,
+        ) 
 
 input_string += """
 
@@ -177,5 +255,5 @@ generatedSpeciesConstraints(
 )
 """
 
-with open('input.py', 'w') as f:
+with open("input.py", "w") as f:
     f.write(input_string)

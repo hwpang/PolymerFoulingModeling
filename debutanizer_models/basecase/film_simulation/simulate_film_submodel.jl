@@ -17,7 +17,7 @@ rms_mech_directory = ARGS[1]
 model_name = ARGS[2]
 liquid_simulation_results_path = ARGS[3]
 
-if model_name == "basecase_debutanizer_model"
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     aspen_condition_path = ARGS[4]
     tray = parse(Int, ARGS[5])
 elseif model_name == "QCMD_cell_model"
@@ -28,7 +28,7 @@ end
 println("rms_mech_directory: $(rms_mech_directory)")
 println("model_name: $(model_name)")
 println("liquid_simulation_results_path: $(liquid_simulation_results_path)")
-if model_name == "basecase_debutanizer_model"
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     println("aspen_condition_path: $(aspen_condition_path)")
 end
 
@@ -41,8 +41,16 @@ ASFWnparams_path = joinpath(save_directory, "ASFWnparams.yml")
 println("ASFWnparams_path: $(ASFWnparams_path)")
 
 # set up parameters
-if model_name == "basecase_debutanizer_model"
-    include_oxygen = false
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
+    if model_name == "basecase_debutanizer_model"
+        include_oxygen = false
+        abstol = 1e-18
+        reltol = 1e-6
+    elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+        include_oxygen = true
+        abstol = 1e-20
+        reltol = 1e-6
+    end
 
     d = 2.5
     h = 0.3
@@ -64,8 +72,6 @@ if model_name == "basecase_debutanizer_model"
     aspen_condition = YAML.load_file(aspen_condition_path)
     Ts = aspen_condition["T"]
 
-    abstol = 1e-18
-    reltol = 1e-6
 elseif model_name == "QCMD_cell_model"
     include_oxygen = true
 
@@ -108,6 +114,7 @@ liq = IdealDiluteSolution(liqspcs, liqrxns, solvent; name="liquid", diffusionlim
 liqspcnames = getfield.(liq.species, :name)
 liqspcmws = getfield.(liq.species, :molecularweight)
 liq_name_mw = Dict(zip(liqspcnames, liqspcmws))
+liq_name_smiles = Dict(zip(liqspcnames, getfield.(liq.species, :smiles)))
 liqrxnstrs = getrxnstr.(liq.reactions)
 liqrxncomments = getfield.(liq.reactions, :comment)
 
@@ -120,7 +127,7 @@ filmrxncomments = getfield.(film.reactions, :comment)
 fragmentnames = [spc.name for spc in filmspcs if spc.isfragment]
 
 println("Loading liquid simulation results...")
-if model_name == "basecase_debutanizer_model"
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     liquid_steady_state_mols = DataFrame(CSV.File(liquid_simulation_results_path))
 elseif model_name == "QCMD_cell_model"
     liquid_steady_state_mols = DataFrame(CSV.File(liquid_simulation_results_path))
@@ -157,8 +164,13 @@ oligomer_init_mol = Dict(
     "alkyl_C.(L,oligomer)" => oligomer_alkyl_C_mol,
 )
 if include_oxygen
-    oligomer_init_mol["COO.(L,oligomer)"] = oligomer_COO_mol
-    oligomer_init_mol["COOH(L,oligomer)"] = oligomer_COOH_mol
+    if !occursin("OXYGEN_0.0", liquid_simulation_results_path)
+        oligomer_init_mol["COO.(L,oligomer)"] = oligomer_COO_mol >= 0.0 ? oligomer_COO_mol : 0.0 # can be a very small negative number due to floating point error for bottom trays
+        oligomer_init_mol["COOH(L,oligomer)"] = oligomer_COOH_mol >= 0.0 ? oligomer_COO_mol : 0.0 # can be a very small negative number due to floating point error for bottom trays
+    else
+        oligomer_init_mol["COO.(L,oligomer)"] = 0.0
+        oligomer_init_mol["COOH(L,oligomer)"] = 0.0
+    end
 end
 
 for (oligomer, mol) in oligomer_init_mol
@@ -171,8 +183,15 @@ liqinitialconds = Dict{String,Float64}()
 liqinitialconds["T"] = T
 liqinitialconds["V"] = Vliqinfilm0
 for name in names(liquid_steady_state_mols)
-    if name * "(L)" in liqspcnames
-        liqinitialconds[name*"(L)"] = liquid_steady_state_mols[tray, name] / Vliq * Vliqinfilm0
+    if name * "(L)" in keys(liq_name_smiles)
+        smiles = liq_name_smiles[name*"(L)"]
+        if occursin("O", smiles) && occursin("OXYGEN_0.0", liquid_simulation_results_path)
+            conc = 0.0
+        else
+            conc = liquid_steady_state_mols[tray, name] / Vliq
+            conc = conc >= 0.0 ? conc : 0.0 # can be a very small negative number due to floating point error for oxygen species in bottom trays
+        end
+        liqinitialconds[name*"(L)"] = conc * Vliqinfilm0
     end
 end
 
@@ -201,11 +220,25 @@ else
     filminitialconds["CD"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["conjugated_diene(L)"]]) / liqtotalmass * mass0
 
     if include_oxygen
-        filminitialconds["PR"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["COO.(L)"]]) / liqtotalmass * mass0
-        filminitialconds["CP"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["COOC(L)"]]) / liqtotalmass * mass0
-        filminitialconds["HP"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["COOH(L)"]]) / liqtotalmass * mass0
-        filminitialconds["OR"] = sum(Float64[liquid_steady_state_mols[tray, name] for name in liquid_species_mapping["CO.(L)"]]) / liqtotalmass * mass0
-        filminitialconds["OH"] = 0.0
+        if !occursin("OXYGEN_0.0", liquid_simulation_results_path)
+            filminitialconds["PR"] = sum(Float64[liquid_steady_state_mols[tray, name] > 0.0 ? liquid_steady_state_mols[tray, name] : 0.0 for name in liquid_species_mapping["COO.(L)"]]) / liqtotalmass * mass0
+            filminitialconds["CP"] = sum(Float64[liquid_steady_state_mols[tray, name] > 0.0 ? liquid_steady_state_mols[tray, name] : 0.0 for name in liquid_species_mapping["COOC(L)"]]) / liqtotalmass * mass0
+            filminitialconds["HP"] = sum(Float64[liquid_steady_state_mols[tray, name] > 0.0 ? liquid_steady_state_mols[tray, name] : 0.0 for name in liquid_species_mapping["COOH(L)"]]) / liqtotalmass * mass0
+            filminitialconds["OR"] = sum(Float64[liquid_steady_state_mols[tray, name] > 0.0 ? liquid_steady_state_mols[tray, name] : 0.0 for name in liquid_species_mapping["CO.(L)"]]) / liqtotalmass * mass0
+            filminitialconds["OH"] = 0.0
+        else
+            filminitialconds["PR"] = 0.0
+            filminitialconds["CP"] = 0.0
+            filminitialconds["HP"] = 0.0
+            filminitialconds["OR"] = 0.0
+            filminitialconds["OH"] = 0.0
+        end
+    end
+end
+
+for fragment in fragmentnames
+    if fragment in keys(filminitialconds)
+        println(fragment, " (mol/kg) = ", filminitialconds[fragment] / mass0)
     end
 end
 
@@ -316,7 +349,7 @@ function save_rop(sol)
     end
 end
 
-if model_name == "basecase_debutanizer_model"
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     CSV.write("$(save_directory)/simulation_film_$(tray)_asymptotic.csv", df)
 end
 
@@ -337,14 +370,63 @@ else
     println("Solving film phase submodel with steady state fragment concentrations...")
 
     domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
-
     domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds, constantspecies=liqspcnames)
-
     inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns)
-
     react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
 
     @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol)
+
+    if model_name == "trace_oxygen_perturbed_debutanizer_model"
+        # get oxygen flux in mol/(m^3*s) at each time point
+        domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
+        domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds)
+        inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns)
+        react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
+
+        oxygen_fluxes = zeros(length(sol.t))
+        oxygen_concs = zeros(length(sol.t))
+        oxygen_diffs = zeros(length(sol.t))
+
+        du = zeros(length(sol(0.0)))
+        oxygenindex = findfirst(x -> x == "OXYGEN(L)", liqspcnames)
+
+        for i in 1:length(sol.t)
+            t = sol.t[i]
+            u = sol.u[i]
+            react.ode.f(du, u, p, t)
+
+            mass = u[end]
+            Vsolidinfilm = mass / rho
+            oxygen_fluxes[i] = du[domainliq.indexes[1]-1+oxygenindex] / Vsolidinfilm
+            oxygen_concs[i] = u[domainliq.indexes[1]-1+oxygenindex] / Vliqinfilm0
+
+            mu = domainliq.phase.solvent.mu(T)
+            oxygen_spc = domainliq.phase.species[oxygenindex]
+            oxygen_diffs[i] = oxygen_spc.diffusion(T=T, mu=mu, P=1e8)
+        end
+
+        # save results as csv
+        results = DataFrame(timestamp=sol.t, oxygen_flux=oxygen_fluxes, oxygen_conc=oxygen_concs, oxygen_diff=oxygen_diffs)
+        CSV.write("$(save_directory)/simulation_film_$(tray)_oxygen.csv", results)
+
+        # solve with heffective
+        oxygen_flux = oxygen_fluxes[1]
+        oxygen_conc = oxygen_concs[1]
+        oxygen_diff = oxygen_diffs[1]
+        heffective = Inf
+        if oxygen_conc > 0.0
+            if oxygen_flux < 0.0
+                tau_chem = oxygen_conc / -oxygen_flux
+                heffective = sqrt(tau_chem * oxygen_diff)
+            end
+        end
+        domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
+        domainliq, y0liq, pliq = ConstantTVDomain(phase=liq, initialconds=liqinitialconds, constantspecies=liqspcnames)
+        inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns, heffective=heffective)
+        react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
+
+        @time sol = solve(react.ode, react.recommendedsolver, abstol=abstol, reltol=reltol)
+    end
 
     println("Saving film phase submodel results...")
 
