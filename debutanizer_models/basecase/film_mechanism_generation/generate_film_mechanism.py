@@ -383,12 +383,11 @@ for spc in fragment_species.values():
 
 def generate_liq_film_reactions(spc):
     liq_film_reactions = []
-    if spc.molecule[0].multiplicity == 3:
-        return liq_film_reactions
     
     if (
         calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0
         and not spc.molecule[0].is_radical()
+        and spc.molecule[0].multiplicity == 1
     ):
 
         liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
@@ -413,7 +412,7 @@ def generate_liq_film_reactions(spc):
                 only_families=["R_Addition_MultipleBond"],
             )
     
-    if calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0 and not spc.molecule[0].is_radical():
+    if calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0 and not spc.molecule[0].is_radical() and spc.molecule[0].multiplicity == 1:
         liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(reactants=[fragment_species["CD"], spc], only_families=["Diels_alder_addition"])
 
     # if calculate_subgraph_isomorphisms(spc.molecule[0], "carbon_double_bond") > 0 and not spc.molecule[0].is_radical():
@@ -442,6 +441,7 @@ def generate_liq_film_reactions(spc):
     if (
         calculate_subgraph_isomorphisms(spc.molecule[0], "allylic_CH") > 0
         and not spc.molecule[0].is_radical()
+        and spc.molecule[0].multiplicity == 1
     ):
 
         for fragment_radical_label in fragment_radical_labels:
