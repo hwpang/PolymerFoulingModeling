@@ -54,11 +54,12 @@ if model_name == "basecase_debutanizer_model":
     perturbed_species_list = ["1,3-BUTADIENE", "CYCLOPENTADIENE"]
     perturbed_factor_list = ["0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9"]
     delta_t = 64.0
-    families = ["Diels-Alder addition", "radical addition"]
+    keys = ["Diels-Alder addition", "radical addition"]
 else:
     perturbed_species_list = ["OXYGEN"]
     perturbed_factor_list = ["0.0", "1e-6", "1e-5", "1e-4", "1e-3", "1e-2", "1e-1", "1e0"]
     delta_t = 32.0
+    keys = ["oxygen-centered radical addition", "carbon-centered radical addition"]
 
 perturbed_factor_num_list = [
     float(perturbed_factor) for perturbed_factor in perturbed_factor_list
@@ -138,27 +139,38 @@ def calculate_fragment_per_mass(df, label):
 
 
 def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
+
     fouling_chemistry_contribution = dict()
     for perturbed_species in perturbed_species_list:
         for perturbed_factor in perturbed_factor_list:
-            fouling_chemistry_contribution[(perturbed_species, perturbed_factor)] = {family: np.zeros(len(trays)) for family in families}
+
+            fouling_chemistry_contribution[perturbed_species, perturbed_factor] = {key: np.zeros(len(trays)) for key in keys}
+            
             for tray in trays:
                 df = film_rop_results[perturbed_species, perturbed_factor, tray]
                 name_inds = df["rop_spcname"] == "mass"
+                rop_rxnstrings = df.loc[name_inds, "rop_rxnstring"]
                 rop_rxncomments = df.loc[name_inds, "rop_rxncomment"]
                 rops = df.loc[name_inds, "rop"]
 
-                for rop_rxncomment, rop in zip(rop_rxncomments, rops):
-                    for family in families:
-                        if family in rop_rxncomment:
-                            fouling_chemistry_contribution[perturbed_species, perturbed_factor][family][tray-1] += rop
+                if model_name == "basecase_debutanizer_model":
+                    for rop_rxncomment, rop in zip(rop_rxncomments, rops):
+                        for key in keys:
+                            if key in rop_rxncomment:
+                                fouling_chemistry_contribution[perturbed_species, perturbed_factor][key][tray-1] += rop
+                else:
+                    for rop_rxnstring, rop_rxncomment, rop in zip(rop_rxnstrings, rop_rxncomments, rops):
+                        if ("O" in rop_rxnstring and "radical addition" in rop_rxncomment) or "[O][O](L) + AR <=> PR" in rop_rxncomment or "[O][O](L) + KR <=> PR" in rop_rxncmment:
+                            fouling_chemistry_contribution[perturbed_species, perturbed_factor]["oxygen-center radical addition"][tray-1] += rop
+                        elif "radical addition" in rop_rxncomment:
+                            fouling_chemistry_contribution[perturbed_species, perturbed_factor]["carbon-center radical addition"][tray-1] += rop
     
     if normalize:
         for perturbed_species in perturbed_species_list:
             for perturbed_factor in perturbed_factor_list:
-                rop_sum = np.sum(fouling_chemistry_contribution[perturbed_species, perturbed_factor][family] for family in families)
-                for family in families:
-                    fouling_chemistry_contribution[perturbed_species, perturbed_factor][family] /= rop_sum
+                rop_sum = np.sum(fouling_chemistry_contribution[perturbed_species, perturbed_factor][key] for key in keys)
+                for key in keys:
+                    fouling_chemistry_contribution[perturbed_species, perturbed_factor][key] /= rop_sum
     
     return fouling_chemistry_contribution
 
@@ -171,8 +183,9 @@ ncols = 2
 markers = ["x", "v", "D", "P", "X", "8", "p", "*", "h", "H", "d"]
 # cmaps = ["Blues", "Greens", "Purples", "Oranges"]
 fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True)
+normalized_fouling_chemistry_contribution = calculate_fouling_chemistry_contribution(film_rop_results, normalize=True)
+
 if model_name == "basecase_debutanizer_model":
-    normalized_fouling_chemistry_contribution = calculate_fouling_chemistry_contribution(film_rop_results, normalize=True)
     
     for species_ind, perturbed_species in enumerate(perturbed_species_list):
         for factor_ind, perturbed_factor in enumerate(perturbed_factor_list):
@@ -242,12 +255,12 @@ if model_name == "basecase_debutanizer_model":
             ax = axs[4, species_ind]
             contribution = normalized_fouling_chemistry_contribution[perturbed_species, perturbed_factor]
             label = None
-            for ind, family in enumerate(families):
+            for ind, key in enumerate(keys):
                 if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
-                    label = family
+                    label = key
                 ax.scatter(
                     trays,
-                    contribution[family],
+                    contribution[key],
                     # color=plt.get_cmap(cmaps[ind])(factor_ind / len(perturbed_factor_list)),
                     color=factorcmap(factor_ind / len(perturbed_factor_list)),
                     marker=markers[ind],
@@ -256,7 +269,7 @@ if model_name == "basecase_debutanizer_model":
                     zorder=ind,
                 )
             ax.set_ylabel("Film growth\nchemistry (%)")
-            
+
             if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
                 ax.legend(bbox_to_anchor=(1.05, -0.3), loc="upper right")
 
@@ -388,6 +401,26 @@ else:
                 ax.set_ylabel("OR/mass (mol/kg)")
                 ax.set_yscale("log")
                 ax.set_title("(h)", loc="left")
+
+                ax = axs[4, 0]
+                contribution = normalized_fouling_chemistry_contribution[perturbed_species, perturbed_factor]
+                label = None
+                for ind, key in enumerate(keys):
+                    if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
+                        label = key
+                    ax.scatter(
+                        trays,
+                        contribution[key],
+                        color=factorcmap(factor_ind / len(perturbed_factor_list)),
+                        marker=markers[ind],
+                        edgecolors="black",
+                        label=label,
+                        zorder=ind,
+                    )
+                ax.set_ylabel("Film growth\nchemistry (%)")
+
+                if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
+                    ax.legend(bbox_to_anchor=(1.05, -0.3), loc="upper right")
 
 axs[-1, 0].set_xlabel("Trays")
 axs[-1, 1].set_xlabel("Trays")
