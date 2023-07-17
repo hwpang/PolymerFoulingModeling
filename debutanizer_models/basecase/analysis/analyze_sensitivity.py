@@ -59,7 +59,7 @@ else:
     perturbed_species_list = ["OXYGEN"]
     perturbed_factor_list = ["0.0", "1e-6", "1e-5", "1e-4", "1e-3", "1e-2", "1e-1", "1e0"]
     delta_t = 32.0
-    keys = ["oxygen-centered radical addition", "carbon-centered radical addition"]
+    keys = ["oxygen-center radical addition", "carbon-center radical addition"]
 
 perturbed_factor_num_list = [
     float(perturbed_factor) for perturbed_factor in perturbed_factor_list
