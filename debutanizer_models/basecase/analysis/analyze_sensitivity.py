@@ -149,7 +149,7 @@ def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
             for tray in trays:
                 df = film_rop_results[perturbed_species, perturbed_factor, tray]
                 name_inds = df["rop_spcname"] == "mass"
-                rop_rxnstrings = df.loc[name_inds, "rop_rxnstring"]
+                rop_rxnstrs = df.loc[name_inds, "rop_rxnstr"]
                 rop_rxncomments = df.loc[name_inds, "rop_rxncomment"]
                 rops = df.loc[name_inds, "rop"]
 
@@ -159,8 +159,8 @@ def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
                             if key in rop_rxncomment:
                                 fouling_chemistry_contribution[perturbed_species, perturbed_factor][key][tray-1] += rop
                 else:
-                    for rop_rxnstring, rop_rxncomment, rop in zip(rop_rxnstrings, rop_rxncomments, rops):
-                        if ("O" in rop_rxnstring and "radical addition" in rop_rxncomment) or "[O][O](L) + AR <=> PR" in rop_rxncomment or "[O][O](L) + KR <=> PR" in rop_rxncmment:
+                    for rop_rxnstr, rop_rxncomment, rop in zip(rop_rxnstrs, rop_rxncomments, rops):
+                        if ("O" in rop_rxnstr and "radical addition" in rop_rxncomment) or "[O][O](L) + AR <=> PR" in rop_rxncomment or "[O][O](L) + KR <=> PR" in rop_rxncmment:
                             fouling_chemistry_contribution[perturbed_species, perturbed_factor]["oxygen-center radical addition"][tray-1] += rop
                         elif "radical addition" in rop_rxncomment:
                             fouling_chemistry_contribution[perturbed_species, perturbed_factor]["carbon-center radical addition"][tray-1] += rop
