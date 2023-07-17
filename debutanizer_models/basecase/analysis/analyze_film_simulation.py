@@ -205,4 +205,4 @@ if model_name != "basecase_debutanizeR_model":
     fig.savefig(f"Figures/{model_name}_film_rop_OR.pdf", bbox_inches="tight")
     plt.close()
 
-print(rxns_to_calc)
+print(set(rxns_to_calc))
