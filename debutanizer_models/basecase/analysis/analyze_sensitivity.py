@@ -160,7 +160,7 @@ def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
                                 fouling_chemistry_contribution[perturbed_species, perturbed_factor][key][tray-1] += rop
                 else:
                     for rop_rxnstr, rop_rxncomment, rop in zip(rop_rxnstrs, rop_rxncomments, rops):
-                        if ("O" in rop_rxnstr and "radical addition" in rop_rxncomment) or "[O][O](L) + AR <=> PR" in rop_rxncomment or "[O][O](L) + KR <=> PR" in rop_rxncmment:
+                        if ("O" in rop_rxnstr and "radical addition" in rop_rxncomment) or "[O][O](L) + AR <=> PR" in rop_rxncomment or "[O][O](L) + KR <=> PR" in rop_rxncomment:
                             fouling_chemistry_contribution[perturbed_species, perturbed_factor]["oxygen-center radical addition"][tray-1] += rop
                         elif "radical addition" in rop_rxncomment:
                             fouling_chemistry_contribution[perturbed_species, perturbed_factor]["carbon-center radical addition"][tray-1] += rop
