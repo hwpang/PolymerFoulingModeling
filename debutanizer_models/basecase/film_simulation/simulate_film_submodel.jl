@@ -329,7 +329,7 @@ function save_rop(sol)
             if model_name == "basecase_debutanizer_model"
                 check_max_rxn = occursin("CYCLOPENTADIENE(L) + CDB Diels-Alder addition", rop_rxncomments[ind_max]) || occursin("1,3-BUTADIENE(L) + AR radical addition", rop_rxncomments[ind_max])
             else
-                check_max_rxn = true
+                check_max_rxn = occursin("Diels-Alder addition", rop_rxncomments[ind_max]) && !occursin("CYCLOPENTADIENE(L)", rop_rxncomments[ind_max])
             end
 
             if no_neg_rop && check_max_rxn
