@@ -124,6 +124,8 @@ for ind, tray in enumerate(selected_trays):
     df = simulations[tray]
     mass = df.loc[len(df.index)-1, "mass"]
     xs = np.arange(len(rop_rxncomments))
+    print(rop_rxncomments)
+    print(rop_rxnstrs)
     axs[ind].barh(xs, np.abs(rops)/mass, align="center")
     axs[ind].set_yticks(xs)
     axs[ind].set_yticklabels(rop_rxncomments)
@@ -145,6 +147,8 @@ for ind, tray in enumerate(selected_trays):
     df = simulations[tray]
     mass = df.loc[len(df.index)-1, "mass"]
     xs = np.arange(len(rop_rxncomments))
+    print(rop_rxncomments)
+    print(rop_rxnstrs)
     axs[ind].barh(xs, np.abs(rops)/mass, align="center")
     axs[ind].set_yticks(xs)
     axs[ind].set_yticklabels(rop_rxncomments)
@@ -168,6 +172,8 @@ if model_name != "basecase_debutanizeR_model":
         df = simulations[tray]
         mass = df.loc[len(df.index)-1, "mass"]
         xs = np.arange(len(rop_rxncomments))
+        print(rop_rxncomments)
+        print(rop_rxnstrs)
         axs[ind].barh(xs, np.abs(rops)/mass, align="center")
         axs[ind].set_yticks(xs)
         axs[ind].set_yticklabels(rop_rxncomments)
