@@ -119,6 +119,8 @@ ax.set_ylabel("R.(liq) "+r"$\tau_\mathrm{chem}$"+"/"+r"$\tau_\mathrm{res}$", fon
 ax.set_xlabel("Tray", fontsize=12)
 ax.set_yscale("log")
 ax.set_title("(b)", loc="left")
+if model_name != "basecase_debutanizer_model":
+    ax.legend(bbox_to_anchor=(1, 1.05))
 
 patterns = ['//', '\\\\', '||', '--', '++', 'xx', 'oo', 'OO', '..', '**']
 
@@ -148,7 +150,7 @@ ax.set_ylim([0, 100])
 ax.set_title("(c)", loc="left")
 ax.set_xticks([])
 ax.set_xticklabels([])
-ax.legend(bbox_to_anchor=(1, 1))
+ax.legend(bbox_to_anchor=(1, 1.05))
 
 ax = fig.add_subplot(gs[2, :])
 bottom = np.zeros(len(trays))
@@ -173,7 +175,7 @@ if model_name != "basecase_debutanizer_model":
 ax.set_ylabel("R.(liq) production (%)")
 ax.set_ylim([0, 100])
 ax.set_title("(d)", loc="left")
-ax.legend(bbox_to_anchor=(1, 1))
+ax.legend(bbox_to_anchor=(1, 1.05))
 ax.set_xlabel("Tray", fontsize=12)
 
 plt.subplots_adjust(wspace=0, hspace=0)
