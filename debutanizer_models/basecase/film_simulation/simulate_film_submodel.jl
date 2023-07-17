@@ -46,10 +46,14 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
         include_oxygen = false
         abstol = 1e-18
         reltol = 1e-6
+        tf0 = 3600 * 24 * 365 * 10
+        tf = 3600 * 24 * 365
     elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
         include_oxygen = true
         abstol = 1e-20
         reltol = 1e-6
+        tf0 = 3600 * 24 * 365 * 5
+        tf = 3600 * 24 * 365 * 0.5
     end
 
     d = 2.5
@@ -64,9 +68,6 @@ if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutani
     Vfilm0 = A * hfilm0
     Vsolidinfilm0 = Vfilm0 * (1 - epsilon)
     Vliqinfilm0 = Vfilm0 * epsilon
-
-    tf0 = 3600 * 24 * 365 * 10
-    tf = 3600 * 24 * 365
 
     trays = 1:40
     aspen_condition = YAML.load_file(aspen_condition_path)
@@ -329,7 +330,7 @@ function save_rop(sol)
             if model_name == "basecase_debutanizer_model"
                 check_max_rxn = occursin("CYCLOPENTADIENE(L) + CDB Diels-Alder addition", rop_rxncomments[ind_max]) || occursin("1,3-BUTADIENE(L) + AR radical addition", rop_rxncomments[ind_max])
             else
-                check_max_rxn = occursin("Diels-Alder addition", rop_rxncomments[ind_max]) && !occursin("CYCLOPENTADIENE(L)", rop_rxncomments[ind_max])
+                check_max_rxn = !(occursin("Diels-Alder addition", rop_rxncomments[ind_max]) && !occursin("CYCLOPENTADIENE(L)", rop_rxncomments[ind_max]))
             end
 
             if no_neg_rop && check_max_rxn
