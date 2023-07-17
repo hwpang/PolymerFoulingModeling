@@ -178,11 +178,17 @@ def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
 print("Plotting all sensitivity simulation results...")
 
 factorcmap = plt.get_cmap("PuRd")
-nrows = 5
-ncols = 2
+if model_name == "basecase_debutanizer_model":
+    nrows = 5
+    ncols = 2
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True)
+else:
+    nrows = 4
+    ncols = 2
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 8), sharex=True)
+
 markers = ["x", "v", "D", "P", "X", "8", "p", "*", "h", "H", "d"]
 # cmaps = ["Blues", "Greens", "Purples", "Oranges"]
-fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True)
 normalized_fouling_chemistry_contribution = calculate_fouling_chemistry_contribution(film_rop_results, normalize=True)
 
 if model_name == "basecase_debutanizer_model":
@@ -401,26 +407,6 @@ else:
                 ax.set_ylabel("OR/mass (mol/kg)")
                 ax.set_yscale("log")
                 ax.set_title("(h)", loc="left")
-
-                ax = axs[4, 0]
-                contribution = normalized_fouling_chemistry_contribution[perturbed_species, perturbed_factor]
-                label = None
-                for ind, key in enumerate(keys):
-                    if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
-                        label = key
-                    ax.scatter(
-                        trays,
-                        contribution[key],
-                        color=factorcmap(factor_ind / len(perturbed_factor_list)),
-                        marker=markers[ind],
-                        edgecolors="black",
-                        label=label,
-                        zorder=ind,
-                    )
-                ax.set_ylabel("Film growth\nchemistry (%)")
-
-                if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
-                    ax.legend(bbox_to_anchor=(1.05, -0.3), loc="upper right")
 
 axs[-1, 0].set_xlabel("Trays")
 axs[-1, 1].set_xlabel("Trays")
