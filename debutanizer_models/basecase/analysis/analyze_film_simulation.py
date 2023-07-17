@@ -89,6 +89,8 @@ for tray in trays:
     simulation_path = os.path.join(simulation_directory, f"simulation_film_{tray}.csv")
     simulations[tray] = pd.read_csv(simulation_path)
 
+rxns_to_calc = []
+
 print("Plotting rate of film growth...")
 
 selected_trays = [1, 5, 10, 15, 20, 25, 30, 35, 40]
@@ -102,8 +104,7 @@ for ind, tray in enumerate(selected_trays):
     df = simulations[tray]
     mass = df.loc[len(df.index)-1, "mass"]
     xs = np.arange(len(rop_rxncomments))
-    print(rop_rxncomments)
-    print(rop_rxnstrs)
+    rxns_to_calc += rop_rxnstrs.tolist()
     axs[ind].barh(xs, rops/mass, align="center")
     axs[ind].set_yticks(xs)
     axs[ind].set_yticklabels(rop_rxncomments)
@@ -124,8 +125,7 @@ for ind, tray in enumerate(selected_trays):
     df = simulations[tray]
     mass = df.loc[len(df.index)-1, "mass"]
     xs = np.arange(len(rop_rxncomments))
-    print(rop_rxncomments)
-    print(rop_rxnstrs)
+    rxns_to_calc += rop_rxnstrs.tolist()
     axs[ind].barh(xs, np.abs(rops)/mass, align="center")
     axs[ind].set_yticks(xs)
     axs[ind].set_yticklabels(rop_rxncomments)
@@ -147,8 +147,7 @@ for ind, tray in enumerate(selected_trays):
     df = simulations[tray]
     mass = df.loc[len(df.index)-1, "mass"]
     xs = np.arange(len(rop_rxncomments))
-    print(rop_rxncomments)
-    print(rop_rxnstrs)
+    rxns_to_calc += rop_rxnstrs.tolist()
     axs[ind].barh(xs, np.abs(rops)/mass, align="center")
     axs[ind].set_yticks(xs)
     axs[ind].set_yticklabels(rop_rxncomments)
@@ -172,8 +171,7 @@ if model_name != "basecase_debutanizeR_model":
         df = simulations[tray]
         mass = df.loc[len(df.index)-1, "mass"]
         xs = np.arange(len(rop_rxncomments))
-        print(rop_rxncomments)
-        print(rop_rxnstrs)
+        rxns_to_calc += rop_rxnstrs.tolist()
         axs[ind].barh(xs, np.abs(rops)/mass, align="center")
         axs[ind].set_yticks(xs)
         axs[ind].set_yticklabels(rop_rxncomments)
@@ -206,3 +204,5 @@ if model_name != "basecase_debutanizeR_model":
     fig.tight_layout()
     fig.savefig(f"Figures/{model_name}_film_rop_OR.pdf", bbox_inches="tight")
     plt.close()
+
+print(rxns_to_calc)
