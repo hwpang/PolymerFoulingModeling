@@ -123,8 +123,7 @@ rmg = RMG()
 
 rmg.database_directory = settings["database.directory"]
 rmg.thermo_libraries = [
-    "thermo_combined",
-    "multi_trays_combined",
+    "hwpang_fouling",
     "Conjugated_diene",
     "Klippenstein_Glarborg2016",
     "BurkeH2O2",
@@ -141,7 +140,7 @@ rmg.kinetics_depositories = ["training"]
 rmg.kinetics_estimator = "rate rules"
 rmg.solvent = "benzene"
 rmg.reaction_libraries = [
-    ("kinetics_combined", False),
+    ("hwpang_fouling", False),
     ("Xu_cyclopentadiene", False),
     ("Conjugated_diene", False),
     ("Klippenstein_Glarborg2016", False),
@@ -151,6 +150,28 @@ rmg.load_database()
 
 solvent_data = rmg.database.solvation.get_solvent_data(rmg.solvent)
 diffusion_limiter.enable(solvent_data, rmg.database.solvation)
+
+print("Labeling reaction families...")
+
+def get_reaction_family(rxn):
+    if rxn.family in rmg.database.kinetics.families:
+        return rxn.family
+    else:
+        rxns = rmg.database.kinetics.generate_reactions_from_families(
+            reactants=rxn.reactants, products=rxn.products
+        )
+        if rxns:
+            print(rxns[0].family)
+            return rxns[0].family
+        else:
+            return rxn.family
+
+families = Parallel(n_jobs=n_jobs, verbose=5, backend="multiprocessing")(
+    delayed(get_reaction_family)(rxn) for rxn in liqrxns
+)
+
+for rxn, family in zip(liqrxns, families):
+    rxn.family = family
 
 # create helper dictionaries
 liq_smiles_to_spc_dict = dict()
@@ -163,8 +184,8 @@ for spc in liqspcs:
     liq_label_to_spc_dict[spc.label] = spc
 
 if debug:
-    liqspcs = random.sample(liqspcs, 50)
-    liqrxns = random.sample(liqrxns, 100)
+    liqspcs = liqspcs[:50]
+    liqrxns = liqrxns[:100]
 
 # Useful structure definitions
 
@@ -282,11 +303,9 @@ def calculate_subgraph_isomorphisms(mol, group):
             and not mol.is_subgraph_isomorphic(group_dict["allylic_C."])
         )
     elif group == "conjugated_diene":
-        return len(mol.find_subgraph_isomorphisms(group_dict["conjugated_diene"]))
+        return len(mol.find_subgraph_isomorphisms(group_dict["conjugated_diene"])) // 2
     elif group == "carbon_double_bond":
-        return (
-            len(mol.find_subgraph_isomorphisms(group_dict["carbon_double_bond"])) // 2
-        )
+        return len(mol.find_subgraph_isomorphisms(group_dict["carbon_double_bond"])) // 2
     elif group == "COO.":
         return len(mol.find_subgraph_isomorphisms(group_dict["COO."]))
     elif group == "COOC":
@@ -299,6 +318,7 @@ def calculate_subgraph_isomorphisms(mol, group):
 
 # Dummy solid phase species place holder
 fragment_species = dict()
+fragment_species["CD"] = Species().from_smiles("CC=CC=CC")
 fragment_species["CDB"] = Species().from_smiles("CCC=CCC")
 fragment_species["AH"] = Species().from_smiles("C=C(C)C")
 fragment_species["AR"] = Species().from_smiles("C=C(C)[CH2]")
@@ -314,6 +334,9 @@ for spc in fragment_species.values():
     spc.generate_resonance_structures()
 
 fragment_species_implicit_structures = dict()
+fragment_species_implicit_structures["CD"] = ["AH"] * calculate_subgraph_isomorphisms(
+    fragment_species["CD"].molecule[0], "allylic_CH"
+)
 fragment_species_implicit_structures["CDB"] = ["AH"] * calculate_subgraph_isomorphisms(
     fragment_species["CDB"].molecule[0], "allylic_CH"
 )
@@ -352,11 +375,14 @@ film_phase_model = CoreEdgeReactionModel()
 film_phase_model.solvent_name = "benzene"
 
 for spc in fragment_species.values():
-    film_phase_model.make_new_species(spc)
+    film_phase_model.make_new_species(spc, generate_thermo=False)
 
 
 def generate_liq_film_reactions(spc):
     liq_film_reactions = []
+    if spc.molecule[0].multiplicity == 3:
+        return liq_film_reactions
+    
     if (
         calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0
         and not spc.molecule[0].is_radical()
@@ -383,6 +409,9 @@ def generate_liq_film_reactions(spc):
                 reactants=[fragment_species["OR"], spc],
                 only_families=["R_Addition_MultipleBond"],
             )
+    
+    if calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0 and not spc.molecule[0].is_radical():
+        liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(reactants=[fragment_species["CD"], spc], only_families=["Diels_alder_addition"])
 
     # if calculate_subgraph_isomorphisms(spc.molecule[0], "carbon_double_bond") > 0 and not spc.molecule[0].is_radical():
     #     liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(reactants=[fragment_species["KR"],spc],only_families=["R_Addition_MultipleBond"])
@@ -523,7 +552,7 @@ for label, spc in oligomer_species.items():
     spc.label = label
 
 for spc in oligomer_species.values():
-    film_phase_model.make_new_species(spc)
+    film_phase_model.make_new_species(spc, generate_thermo=False)
 
 liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
     reactants=[fragment_species["CDB"], oligomer_species["allylic_CH(L,oligomer)"]],
@@ -535,10 +564,24 @@ for oligomer_radical_label in oligomer_radical_labels:
         reactants=[fragment_species["CDB"], oligomer_species[oligomer_radical_label]],
         only_families=["R_Addition_MultipleBond"],
     )
+    liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
+        reactants=[fragment_species["CD"], oligomer_species[oligomer_radical_label]],
+        only_families=["R_Addition_MultipleBond"],
+    )
 
 liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
     reactants=[fragment_species["KR"], oligomer_species["C=C(L,oligomer)"]],
     only_families=["R_Addition_MultipleBond"],
+)
+
+liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
+    reactants=[fragment_species["AR"], oligomer_species["C=C(L,oligomer)"]],
+    only_families=["R_Addition_MultipleBond"],
+)
+
+liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
+    reactants=[fragment_species["CD"], oligomer_species["C=C(L,oligomer)"]],
+    only_families=["Diels_alder_addition"],
 )
 
 for fragment_radical_label in fragment_radical_labels:
@@ -589,18 +632,39 @@ for fragment_radical_label in fragment_radical_labels:
 end_1 = time.time()
 print("Time to generate oligomer reactions: {}".format(end_1 - start_1))
 
+print("Getting library kinetics...")
+
+def get_library_reactions(reaction):
+    rxns = rmg.database.kinetics.generate_reactions_from_libraries(reactants=reaction.reactants, products=reaction.products)
+    if rxns:
+        print(reaction.family)
+        rxn = rxns[0]
+        rxn.family = reaction.family
+        return rxn
+    else:
+        return reaction
+
+start_1 = time.time()
+new_liq_film_reactions = Parallel(n_jobs=n_jobs, verbose=5, backend="multiprocessing")(
+    delayed(get_library_reactions)(reaction) for reaction in liq_film_reactions
+)
+end_1 = time.time()
+print("Time to get library reactions: {}".format(end_1 - start_1))
 
 print("Making new reactions...")
 start_1 = time.time()
-for reaction in liq_film_reactions:
+for reaction, new_reaction in zip(liq_film_reactions, new_liq_film_reactions):
+
+    new_reaction.family = reaction.family
+
     film_phase_model.make_new_reaction(
-        reaction, generate_kinetics=False, generate_thermo=False, perform_cut=False,
+        new_reaction, generate_kinetics=False, generate_thermo=False, perform_cut=False,
     )
 end_1 = time.time()
 print("Time to make new reactions: {}".format(end_1 - start_1))
 
 for spc in liqspcs:
-    film_phase_model.make_new_species(spc)
+    film_phase_model.make_new_species(spc, generate_thermo=False)
 
 def generate_thermo(spc):
     film_phase_model.generate_thermo(spc)
@@ -615,7 +679,6 @@ for spc, thermo in zip(film_phase_model.new_species_list, thermos):
     spc.thermo = thermo
 end_1 = time.time()
 print("Time to generate thermos: {}".format(end_1 - start_1))
-
 
 def generate_kinetics(forward):
     self = film_phase_model
@@ -635,7 +698,6 @@ def generate_kinetics(forward):
         # we need to make sure the barrier is positive.
         forward.fix_barrier_height(force_positive=True)
     return forward.kinetics
-
 
 print("Generate kinetics...")
 start_1 = time.time()
@@ -693,6 +755,19 @@ write_yml(
     path=os.path.join(save_directory, f"chem_film_phase.rms"),
 )
 
+save_chemkin_file(
+    os.path.join(save_directory, 'chem_annotated_film.inp'),
+    film_phase_model.core.species,
+    film_phase_model.core.reactions,
+    verbose=True,
+    check_for_duplicates=True,
+)
+
+save_species_dictionary(
+    os.path.join(save_directory, 'species_dictionary_film.txt'),
+    film_phase_model.core.species,
+)
+
 print("Getting fragment mapping...")
 
 fragment_based_reaction_mapping = dict()
@@ -709,6 +784,21 @@ for oligomer in oligomer_species.values():
     label_to_smiles_or_label[oligomer.label] = oligomer.label
 for monomer_label in initial_monomer_labels:
     label_to_smiles_or_label[monomer_label + "(L)"] = monomer_label + "(L)"
+
+# for ind, rxn in enumerate(film_phase_model.core.reactions):
+#     label = ""
+#     for spc in rxn.reactants:
+#         label += f"{spc.label}+"
+#     label = label[:-1]
+#     label += "<=>"
+#     for spc in rxn.products:
+#         label += f"{spc.label}+"
+#     label = label[:-1]
+
+#     fragment_based_reaction_mapping[label] = dict()
+
+#     if any(spc.label not in fragment_species.keys() and spc.label for spc in rxn.reactants):
+        
 
 for ind, rxn in enumerate(film_phase_model.core.reactions):
     label = ""
@@ -877,9 +967,19 @@ for ind, rxn in enumerate(film_phase_model.core.reactions):
             raise ValueError("Unexpected number of products")
 
         fragment_based_reaction_mapping[label][fragment_based_species.label].extend(
-            ["CDB"]
+            ["CD"]
             * calculate_subgraph_isomorphisms(
-                fragment_based_species.molecule[0], "carbon_double_bond"
+                fragment_based_species.molecule[0], "conjugated_diene"
+            )
+        )
+        fragment_based_reaction_mapping[label][fragment_based_species.label].extend(
+            ["CDB"]
+            * (
+                calculate_subgraph_isomorphisms(
+                    fragment_based_species.molecule[0], "carbon_double_bond"
+                ) - calculate_subgraph_isomorphisms(
+                    fragment_based_species.molecule[0], "conjugated_diene"
+                )
             )
         )
         fragment_based_reaction_mapping[label][fragment_based_species.label].extend(
@@ -1295,6 +1395,7 @@ liquid_species_mapping["allylic_CH(L)"] = list()
 liquid_species_mapping["allylic_C.(L)"] = list()
 liquid_species_mapping["alkyl_C.(L)"] = list()
 liquid_species_mapping["C=C(L)"] = list()
+liquid_species_mapping["conjugated_diene(L)"] = list()
 if include_oxygen:
     liquid_species_mapping["COO.(L)"] = list()
     liquid_species_mapping["COOC(L)"] = list()
@@ -1316,6 +1417,11 @@ for spc in liqspcs:
         )
         liquid_species_mapping["alkyl_C.(L)"].extend(
             [spc.label] * calculate_subgraph_isomorphisms(spc.molecule[0], "alkyl_C.")
+        )
+        # film conjugated dienes come from radicals
+        liquid_species_mapping["conjugated_diene(L)"].extend(
+            [spc.label]
+            * calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene")
         )
 
     if include_oxygen:
