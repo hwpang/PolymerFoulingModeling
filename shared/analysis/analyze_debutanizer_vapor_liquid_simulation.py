@@ -138,6 +138,8 @@ ax.set_ylabel("R.(liq) "+r"$\tau_\mathrm{chem}$"+"/"+r"$\tau_\mathrm{res}$", fon
 ax.set_xlabel("Tray", fontsize=12)
 ax.set_yscale("log")
 ax.set_title("(b)", loc="left")
+if model_name != "basecase_debutanizer_model":
+    ax.legend(bbox_to_anchor=(1, 1))
 
 patterns = ['//', '\\\\', '||', '--', '++', 'xx', 'oo', 'OO', '..', '**']
 
@@ -311,7 +313,10 @@ def plot_liquid_rop(name, labels, loss_only=False, production_only=False):
     min_rop = 1e10
     max_rop = 0
     for ind, tray in enumerate(selected_trays):
-        rops, rop_sourcestrings = get_liquid_rops(liquid_rop_results[tray], labels, radicals_only=True, loss_only=loss_only, production_only=production_only)
+        if name == "RC.":
+            rops, rop_sourcestrings = get_liquid_rops(liquid_rop_results[tray], labels, radicals_only=True, loss_only=loss_only, production_only=production_only)
+        else:
+            rops, rop_sourcestrings = get_liquid_rops(liquid_rop_results[tray], labels, radicals_only=False, loss_only=loss_only, production_only=production_only)
         normalized_rops = rops.abs() / Vliq
         if normalized_rops.empty:
             continue

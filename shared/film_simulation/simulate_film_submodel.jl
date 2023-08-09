@@ -17,7 +17,7 @@ rms_mech_directory = ARGS[1]
 model_name = ARGS[2]
 liquid_simulation_results_path = ARGS[3]
 
-if model_name == "basecase_debutanizer_model"
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     aspen_condition_path = ARGS[4]
     tray = parse(Int, ARGS[5])
 elseif model_name == "QCMD_cell_model"
@@ -41,9 +41,7 @@ ASFWnparams_path = joinpath(save_directory, "ASFWnparams.yml")
 println("ASFWnparams_path: $(ASFWnparams_path)")
 
 # set up parameters
-if model_name == "basecase_debutanizer_model"
-    include_oxygen = false
-
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     d = 2.5
     h = 0.3
     A = (d / 2)^2 * pi
@@ -57,15 +55,24 @@ if model_name == "basecase_debutanizer_model"
     Vsolidinfilm0 = Vfilm0 * (1 - epsilon)
     Vliqinfilm0 = Vfilm0 * epsilon
 
-    tf0 = 3600 * 24 * 365 * 50
+    if model_name == "basecase_debutanizer_model"
+        include_oxygen = false
+        tf0 = 3600 * 24 * 365 * 50
+        abstol = 1e-18
+        reltol = 1e-6
+    else
+        include_oxygen = true
+        tf0 = 3600 * 24 * 365
+        abstol = 1e-18
+        reltol = 1e-6
+    end
+
     tf = 3600 * 24 * 365
 
     trays = 1:40
     aspen_condition = YAML.load_file(aspen_condition_path)
     Ts = aspen_condition["T"]
 
-    abstol = 1e-18
-    reltol = 1e-6
 elseif model_name == "QCMD_cell_model"
     include_oxygen = true
 
@@ -120,7 +127,7 @@ filmrxncomments = getfield.(film.reactions, :comment)
 fragmentnames = [spc.name for spc in filmspcs if spc.isfragment]
 
 println("Loading liquid simulation results...")
-if model_name == "basecase_debutanizer_model"
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     liquid_steady_state_mols = DataFrame(CSV.File(liquid_simulation_results_path))
 elseif model_name == "QCMD_cell_model"
     liquid_steady_state_mols = DataFrame(CSV.File(liquid_simulation_results_path))
@@ -295,8 +302,10 @@ function save_rop(sol)
             println("Max rop rxn comment ", rop_rxncomments[ind_max])
             if model_name == "basecase_debutanizer_model"
                 check_max_rxn = occursin("CYCLOPENTADIENE(L) + CDB Diels-Alder addition", rop_rxncomments[ind_max]) || occursin("1,3-BUTADIENE(L) + AR radical addition", rop_rxncomments[ind_max]) || occursin("AR + CYCLOPENTADIENE(L) radical addition", rop_rxncomments[ind_max])
-            else
-                check_max_rxn = true
+            elseif model_name == "trace_oxygen_perturbed_debutanizer_model"
+                check_max_rxn = occursin("CYCLOPENTADIENE(L) + CDB Diels-Alder addition", rop_rxncomments[ind_max]) || occursin("1,3-BUTADIENE(L) + AR radical addition", rop_rxncomments[ind_max]) || occursin("AR + CYCLOPENTADIENE(L) radical addition", rop_rxncomments[ind_max]) || occursin("1,3-BUTADIENE(L) + PR radical addition", rop_rxncomments[ind_max])
+            elseif model_name == "QCMD_cell_model"
+                check_max_rxn = occursin("AR + 2-methylcyclohexadiene(L) radical addition", rop_rxncomments[ind_max]) || occursin("[O][O](L) + AR <=> PR", rop_rxncomments[ind_max])
             end
 
             if no_neg_rop && check_max_rxn
@@ -316,7 +325,7 @@ function save_rop(sol)
     end
 end
 
-if model_name == "basecase_debutanizer_model"
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]
     CSV.write("$(save_directory)/simulation_film_$(tray)_asymptotic.csv", df)
 end
 
