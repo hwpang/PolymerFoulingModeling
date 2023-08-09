@@ -124,7 +124,9 @@ print("film_growth_rates: ", film_growth_rates)
 ys = np.array([film_growth_rate[0] for film_growth_rate in film_growth_rates])
 ys += ys / rho * epsilon * rho_liq  # converting from mass of solid to mass of film by adding mass of liquid in film
 ys *= 1e9 * 1e3 * 3600  # kg/s to ng/hr
-yerr = np.exp(3 * 1000 * 4.184 / 8.314 / (273.15 + 90)) # 3 kcal/mol uncertainty in activation energy
+yerr = np.exp(
+    2 * 1000 * 4.184 / 8.314 / (273.15 + 90)
+)  # 2 kcal/mol uncertainty in activation energy
 label = "Prediction"
 plt.errorbar(xs, ys, yerr=[ys - ys * 1 / yerr, -ys + ys * yerr], color="C0", marker="o", capsize=5, label=label)
 plt.fill_between(xs, ys * 1 / yerr, ys * yerr, color="C0", alpha=0.5, linewidth=0)
@@ -148,10 +150,26 @@ reduction_factor = 10
 expt_o2 = expt_o2 / reduction_factor  # M
 yerr = expt_rate_std
 color = "C2"
-plt.errorbar([expt_o2], [expt_rate_mean], yerr=[yerr], xerr=[[expt_o2 - expt_o2 / xerr], [-expt_o2 + expt_o2 * xerr]], color=color, marker="o", capsize=5, label=label)
-plt.fill_between([expt_o2 / xerr, expt_o2 * xerr], [expt_rate_mean - yerr, expt_rate_mean - yerr], [expt_rate_mean + yerr, expt_rate_mean + yerr], color=color, alpha=0.5, linewidth=0)
-
-plt.xlabel("[O2] (M)")
+plt.errorbar(
+    [expt_o2],
+    [expt_rate_mean],
+    yerr=[yerr],
+    xerr=[[expt_o2 - expt_o2 / xerr], [-expt_o2 + expt_o2 * xerr]],
+    color=color,
+    marker="o",
+    capsize=5,
+    label="$N_2$ sparged",
+)
+plt.fill_between(
+    [expt_o2 / xerr, expt_o2 * xerr],
+    [expt_rate_mean - yerr, expt_rate_mean - yerr],
+    [expt_rate_mean + yerr, expt_rate_mean + yerr],
+    color=color,
+    alpha=0.5,
+    linewidth=0,
+)
+plt.ylim([1e-2, 1e4])
+plt.xlabel("[$O_2$] (M)")
 plt.ylabel("Film growth rate (ng/hr)")
 plt.xscale("symlog", linthresh=1e-6)
 plt.yscale("log")
@@ -211,7 +229,7 @@ for ind, perturb_factor in enumerate(perturb_factor_list):
     axs[ind].set_yticks(ys)
     axs[ind].set_yticklabels(rop_rxncomments)
     x = xs[ind]
-    axs[ind].set_ylabel(f"[O2] = {x:.1e} M")
+    axs[ind].set_ylabel(f"[$O_2$] = {x:.1e} M")
     axs[ind].set_xscale("log")
     axs[ind].invert_yaxis()
 
@@ -244,7 +262,7 @@ def plot_film_rop(name, loss_only=False, production_only=False):
         axs[ind].set_yticks(ys)
         axs[ind].set_yticklabels(rop_rxncomments)
         x = xs[ind]
-        axs[ind].set_ylabel(f"{x:.1e} M [O2]")
+        axs[ind].set_ylabel(f"{x:.1e} M [$O_2$]")
         axs[ind].set_xscale("log")
         axs[ind].invert_yaxis()
 
