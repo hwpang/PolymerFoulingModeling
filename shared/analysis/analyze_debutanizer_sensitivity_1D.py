@@ -290,7 +290,7 @@ fig.add_subplot(111, frameon=False)
 plt.tick_params(
     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
 )
-plt.ylabel("Film thickness (m)", x=-1.0)
+plt.ylabel("Film thickness (m)", x=-1.5)
 
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
 if model_name == "basecase_debutanizer_model":
