@@ -301,15 +301,15 @@ cbar = fig.colorbar(
     cax=cbar_ax,
 )
 
-# fig.add_subplot(111, frameon=False)
-# plt.tick_params(
-#     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
-# )
-# plt.ylabel("Film thickness (m)", x=-3.0)
+fig.add_subplot(111, frameon=False)
+plt.tick_params(
+    labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
+)
+plt.ylabel("Film thickness (m)", x=-3.0)
 
-fig.supylabel("Film thickness (m)")
+# fig.supylabel("Film thickness (m)")
 
-fig.tight_layout()
+fig.tight_layout(rect=(0.025, 0, 1, 1))
 
 fig.savefig(
     f"Figures/{model_name}_1D_sens_film_thickness_vs_t.pdf",
