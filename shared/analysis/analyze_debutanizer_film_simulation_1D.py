@@ -48,7 +48,6 @@ trays = range(1, 41)
 # num_cells = 1
 num_cells = 3
 cell_inds = range(1, num_cells + 1)
-selected_cell_inds = [cell_inds[0]]
 method = "callback"
 # method = "same_initial_size"
 d = 2.5
