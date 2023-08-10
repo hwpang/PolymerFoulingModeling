@@ -251,7 +251,7 @@ for ind, tray in enumerate(selected_trays):
     ax.set_yticklabels(rop_rxncomments)
     ax.set_xscale("log")
     ax.invert_yaxis()
-    ax.set_ylabel("(t0)")
+    ax.set_ylabel("($t_0$)")
 
     ax = fig.add_subplot(gs[ind * 2 + 1, 0])
     axs.append(ax)
@@ -283,7 +283,7 @@ for ind, tray in enumerate(selected_trays):
     ax.set_yticklabels(rop_rxncomments)
     ax.set_xscale("log")
     ax.invert_yaxis()
-    ax.set_ylabel("(tf)")
+    ax.set_ylabel("($t_f$)")
 
     ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
     ax.set_ylabel(f"Tray {tray}", labelpad=20)
@@ -454,7 +454,7 @@ def plot_fragment_rops_1D(species_label):
         ax.set_yticklabels(rop_rxncomments)
         ax.set_xscale("log")
         ax.invert_yaxis()
-        ax.set_ylabel("(t0)")
+        ax.set_ylabel("($t_0$)")
 
         ax = fig.add_subplot(gs[ind * 2 + 1, 0])
         axs.append(ax)
@@ -491,7 +491,7 @@ def plot_fragment_rops_1D(species_label):
         ax.set_yticklabels(rop_rxncomments)
         ax.set_xscale("log")
         ax.invert_yaxis()
-        ax.set_ylabel("(tf)")
+        ax.set_ylabel("($t_f$)")
 
         ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
         ax.set_ylabel(f"Tray {tray}", labelpad=20)
