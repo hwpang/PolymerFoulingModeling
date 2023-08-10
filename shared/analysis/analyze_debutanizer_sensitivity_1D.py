@@ -245,7 +245,9 @@ ncols = 1
 min_thickness = 1e10
 max_thickness = 0.0
 
-fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True)
+fig, axs = plt.subplots(
+    nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True, sharey=True
+)
 for i, tray in enumerate(selected_trays):
     ax = axs[i]
     for perturbed_species in perturbed_species_list:
@@ -281,8 +283,6 @@ for i, tray in enumerate(selected_trays):
             ax.set_ylabel(f"Tray {tray}")
 
 axs[-1].set_xlabel("Time (yr)")
-for ax in axs.flat:
-    ax.set_ylim([min_thickness, max_thickness])
 
 fig.align_labels()
 
@@ -307,7 +307,7 @@ fig.add_subplot(111, frameon=False)
 plt.tick_params(
     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
 )
-plt.ylabel("Film thickness (m)", x=-3.0)
+plt.ylabel("Film thickness (m)", labelpad=20)
 
 fig.savefig(
     f"Figures/{model_name}_1D_sens_film_thickness_vs_t.pdf",

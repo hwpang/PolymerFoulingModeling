@@ -251,6 +251,7 @@ for ind, tray in enumerate(selected_trays):
     ax.set_yticklabels(rop_rxncomments)
     ax.set_xscale("log")
     ax.invert_yaxis()
+    ax.set_ylabel("(t0)")
 
     ax = fig.add_subplot(gs[ind * 2 + 1, 0])
     axs.append(ax)
@@ -282,9 +283,10 @@ for ind, tray in enumerate(selected_trays):
     ax.set_yticklabels(rop_rxncomments)
     ax.set_xscale("log")
     ax.invert_yaxis()
+    ax.set_ylabel("(tf)")
 
     ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
-    ax.set_ylabel(f"Tray {tray}\n(tf)         (t0)")
+    ax.set_ylabel(f"Tray {tray}", labelpad=20)
     ax.set_xticks([])
     ax.set_xticklabels([])
     ax.set_yticks([])
@@ -307,110 +309,110 @@ fig.align_labels()
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_1D_film_rop_mass_t0_tf.pdf", bbox_inches="tight")
 
-print("Plotting rate of film growth at tf near bulk liquid and tray surface...")
+# print("Plotting rate of film growth at tf near bulk liquid and tray surface...")
 
-fig = plt.figure(figsize=(6, 14))
-gs = fig.add_gridspec(nrows, ncols)
-axs = []
+# fig = plt.figure(figsize=(6, 14))
+# gs = fig.add_gridspec(nrows, ncols)
+# axs = []
 
-min_rop = 1e10
-max_rop = 0
-for ind, tray in enumerate(selected_trays):
-    ax = fig.add_subplot(gs[ind * 2, 0])
-    axs.append(ax)
+# min_rop = 1e10
+# max_rop = 0
+# for ind, tray in enumerate(selected_trays):
+#     ax = fig.add_subplot(gs[ind * 2, 0])
+#     axs.append(ax)
 
-    rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
-        film_rate_of_productions, tray, [cell_inds[0]], "mass"
-    )
-    colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
-    colors = [color for color, pattern in colors_patterns]
-    patterns = [pattern for color, pattern in colors_patterns]
-    df = film_simulations[tray]
-    mass = np.sum(
-        [
-            df.loc[len(df.index) - 1, f"mass_cell_{cell_ind}"]
-            for cell_ind in [cell_inds[0]]
-        ],
-        axis=0,
-    )
-    normalized_rops = np.array(rops / mass)
-    min_rop = min(min_rop, min(normalized_rops))
-    max_rop = max(max_rop, max(normalized_rops))
-    xs = np.arange(len(rop_rxncomments))
-    for bar_ind, x in enumerate(xs):
-        ax.barh(
-            [x],
-            [normalized_rops[bar_ind]],
-            align="center",
-            color=colors[bar_ind],
-            hatch=patterns[bar_ind],
-        )
-    ax.set_yticks(xs)
-    ax.set_yticklabels(rop_rxncomments)
-    ax.set_xscale("log")
-    ax.invert_yaxis()
+#     rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
+#         film_rate_of_productions, tray, [cell_inds[0]], "mass"
+#     )
+#     colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
+#     colors = [color for color, pattern in colors_patterns]
+#     patterns = [pattern for color, pattern in colors_patterns]
+#     df = film_simulations[tray]
+#     mass = np.sum(
+#         [
+#             df.loc[len(df.index) - 1, f"mass_cell_{cell_ind}"]
+#             for cell_ind in [cell_inds[0]]
+#         ],
+#         axis=0,
+#     )
+#     normalized_rops = np.array(rops / mass)
+#     min_rop = min(min_rop, min(normalized_rops))
+#     max_rop = max(max_rop, max(normalized_rops))
+#     xs = np.arange(len(rop_rxncomments))
+#     for bar_ind, x in enumerate(xs):
+#         ax.barh(
+#             [x],
+#             [normalized_rops[bar_ind]],
+#             align="center",
+#             color=colors[bar_ind],
+#             hatch=patterns[bar_ind],
+#         )
+#     ax.set_yticks(xs)
+#     ax.set_yticklabels(rop_rxncomments)
+#     ax.set_xscale("log")
+#     ax.invert_yaxis()
 
-    ax = fig.add_subplot(gs[ind * 2 + 1, 0])
-    axs.append(ax)
+#     ax = fig.add_subplot(gs[ind * 2 + 1, 0])
+#     axs.append(ax)
 
-    cell_ind = cell_inds[-1]
-    rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
-        film_rate_of_productions, tray, [cell_inds[0]], "mass"
-    )
-    colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
-    colors = [color for color, pattern in colors_patterns]
-    patterns = [pattern for color, pattern in colors_patterns]
-    df = film_simulations[tray]
-    mass = np.sum(
-        [
-            df.loc[len(df.index) - 1, f"mass_cell_{cell_ind}"]
-            for cell_ind in [cell_inds[0]]
-        ],
-        axis=0,
-    )
-    normalized_rops = np.array(rops / mass)
-    min_rop = min(min_rop, min(normalized_rops))
-    max_rop = max(max_rop, max(normalized_rops))
-    xs = np.arange(len(rop_rxncomments))
-    for bar_ind, x in enumerate(xs):
-        ax.barh(
-            [x],
-            [normalized_rops[bar_ind]],
-            align="center",
-            color=colors[bar_ind],
-            hatch=patterns[bar_ind],
-        )
-    ax.set_yticks(xs)
-    ax.set_yticklabels(rop_rxncomments)
-    ax.set_xscale("log")
-    ax.invert_yaxis()
+#     cell_ind = cell_inds[-1]
+#     rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
+#         film_rate_of_productions, tray, [cell_inds[0]], "mass"
+#     )
+#     colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
+#     colors = [color for color, pattern in colors_patterns]
+#     patterns = [pattern for color, pattern in colors_patterns]
+#     df = film_simulations[tray]
+#     mass = np.sum(
+#         [
+#             df.loc[len(df.index) - 1, f"mass_cell_{cell_ind}"]
+#             for cell_ind in [cell_inds[0]]
+#         ],
+#         axis=0,
+#     )
+#     normalized_rops = np.array(rops / mass)
+#     min_rop = min(min_rop, min(normalized_rops))
+#     max_rop = max(max_rop, max(normalized_rops))
+#     xs = np.arange(len(rop_rxncomments))
+#     for bar_ind, x in enumerate(xs):
+#         ax.barh(
+#             [x],
+#             [normalized_rops[bar_ind]],
+#             align="center",
+#             color=colors[bar_ind],
+#             hatch=patterns[bar_ind],
+#         )
+#     ax.set_yticks(xs)
+#     ax.set_yticklabels(rop_rxncomments)
+#     ax.set_xscale("log")
+#     ax.invert_yaxis()
 
-    ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
-    ax.set_ylabel(f"Tray {tray}\n(tray surface)      (bulk liquid)")
-    ax.set_xticks([])
-    ax.set_xticklabels([])
-    ax.set_yticks([])
-    ax.set_yticklabels([])
+#     ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
+#     ax.set_ylabel(f"Tray {tray}\n(tray surface)      (bulk liquid)")
+#     ax.set_xticks([])
+#     ax.set_xticklabels([])
+#     ax.set_yticks([])
+#     ax.set_yticklabels([])
 
-print("min_rop: ", min_rop)
-print("max_rop: ", max_rop)
+# print("min_rop: ", min_rop)
+# print("max_rop: ", max_rop)
 
-for ax in axs:
-    ax.set_xlim(min_rop, max_rop)
-    if ax != axs[-1]:
-        ax.set_xticks([])
-        ax.set_xticklabels([])
+# for ax in axs:
+#     ax.set_xlim(min_rop, max_rop)
+#     if ax != axs[-1]:
+#         ax.set_xticks([])
+#         ax.set_xticklabels([])
 
-axs[-1].set_xlabel("Local rate of film growth (kg/(kg*s))")
-axs[-1].legend(
-    handles=handles, labels=labels, bbox_to_anchor=(1.00, -0.5), loc="upper right"
-)
-fig.align_labels()
-fig.tight_layout()
-fig.savefig(
-    f"Figures/{model_name}_1D_film_rop_mass_bulk_liquid_tray_surface.pdf",
-    bbox_inches="tight",
-)
+# axs[-1].set_xlabel("Local rate of film growth (kg/(kg*s))")
+# axs[-1].legend(
+#     handles=handles, labels=labels, bbox_to_anchor=(1.00, -0.5), loc="upper right"
+# )
+# fig.align_labels()
+# fig.tight_layout()
+# fig.savefig(
+#     f"Figures/{model_name}_1D_film_rop_mass_bulk_liquid_tray_surface.pdf",
+#     bbox_inches="tight",
+# )
 
 
 def plot_fragment_rops_1D(species_label):
@@ -452,6 +454,7 @@ def plot_fragment_rops_1D(species_label):
         ax.set_yticklabels(rop_rxncomments)
         ax.set_xscale("log")
         ax.invert_yaxis()
+        ax.set_ylabel("(t0)")
 
         ax = fig.add_subplot(gs[ind * 2 + 1, 0])
         axs.append(ax)
@@ -488,9 +491,10 @@ def plot_fragment_rops_1D(species_label):
         ax.set_yticklabels(rop_rxncomments)
         ax.set_xscale("log")
         ax.invert_yaxis()
+        ax.set_ylabel("(tf)")
 
         ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
-        ax.set_ylabel(f"Tray {tray}\n(tf)         (t0)")
+        ax.set_ylabel(f"Tray {tray}", labelpad=20)
         ax.set_xticks([])
         ax.set_xticklabels([])
         ax.set_yticks([])
