@@ -154,43 +154,6 @@ ax.set_ylabel("Film thickness (m)")
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_1D_film_thickness_vs_t.pdf", bbox_inches="tight")
 
-fig, ax = plt.subplots(nrows=1, ncols=1)
-
-for tray in selected_trays:
-    film_simulation = film_simulations[tray]
-
-    ts = np.array(film_simulation["timestamp"])
-    ms = np.sum(
-        [film_simulation[f"mass_cell_{cell_ind}"] for cell_ind in cell_inds], axis=0
-    )
-
-    taus = get_film_growth_time_constants(ms, ts)
-    hs = ms / rho / (1 - epsilon) / A
-    hs = hs[1:-1]
-
-    ax.plot(
-        hs,
-        taus,
-        color=traycmap(tray / len(trays)),
-        label=f"Tray {tray}",
-    )
-ax.set_yscale("log")
-sm = plt.cm.ScalarMappable(cmap="plasma", norm=plt.Normalize(vmin=1, vmax=40))
-cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
-cbar = fig.colorbar(
-    sm,
-    ticks=selected_trays,
-    orientation="vertical",
-    label="Trays",
-    cax=cbar_ax,
-)
-ax.set_xlabel("Film thickness (m)")
-ax.set_ylabel("Film growth τ (year)")
-fig.tight_layout()
-fig.savefig(
-    f"Figures/{model_name}_1D_film_growth_time_constant_vs_t.pdf", bbox_inches="tight"
-)
-
 print("Loading rate of loss results...")
 
 film_rate_of_productions = dict()
@@ -343,7 +306,7 @@ axs[-1].legend(
 )
 fig.align_labels()
 fig.tight_layout()
-fig.savefig(f"Figures/{model_name}_film_1D_rop_mass_t0_tf.pdf", bbox_inches="tight")
+fig.savefig(f"Figures/{model_name}_1D_film_rop_mass_t0_tf.pdf", bbox_inches="tight")
 
 print("Plotting rate of film growth at tf near bulk liquid and tray surface...")
 
@@ -446,7 +409,7 @@ axs[-1].legend(
 fig.align_labels()
 fig.tight_layout()
 fig.savefig(
-    f"Figures/{model_name}_film_1D_rop_mass_bulk_liquid_tray_surface.pdf",
+    f"Figures/{model_name}_1D_film_rop_mass_bulk_liquid_tray_surface.pdf",
     bbox_inches="tight",
 )
 
@@ -550,7 +513,7 @@ def plot_fragment_rops_1D(species_label):
     fig.align_labels()
     fig.tight_layout()
     fig.savefig(
-        f"Figures/{model_name}_film_1D_rop_{species_label}_t0_tf.pdf",
+        f"Figures/{model_name}_1D_film_rop_{species_label}_t0_tf.pdf",
         bbox_inches="tight",
     )
 
@@ -618,7 +581,7 @@ oxygen_center_radical_names = [
 # axs[-1].set_xlabel("Rate of loss for RC.(L in film) (mol/(m^3*s))")
 
 # fig.tight_layout()
-# fig.savefig(f"Figures/{model_name}_film_1D_rop_RC..pdf", bbox_inches="tight")
+# fig.savefig(f"Figures/{model_name}_1D_film_rop_RC..pdf", bbox_inches="tight")
 
 # print("Plotting rate of loss for oxygen center radicals...")
 
@@ -660,7 +623,7 @@ oxygen_center_radical_names = [
 # axs[-1].set_xlabel("Rate of loss for ROO.(L in film) (mol/(m^3*s))")
 
 # fig.tight_layout()
-# fig.savefig(f"Figures/{model_name}_film_1D_rop_ROO..pdf", bbox_inches="tight")
+# fig.savefig(f"Figures/{model_name}_1D_film_rop_ROO..pdf", bbox_inches="tight")
 
 if model_name != "basecase_debutanizer_model":
     print("Plotting rate of loss for PR...")

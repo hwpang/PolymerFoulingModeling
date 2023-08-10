@@ -301,11 +301,13 @@ cbar = fig.colorbar(
     cax=cbar_ax,
 )
 
-fig.add_subplot(111, frameon=False)
-plt.tick_params(
-    labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
-)
-plt.ylabel("Film thickness (m)", x=-3.0)
+# fig.add_subplot(111, frameon=False)
+# plt.tick_params(
+#     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
+# )
+# plt.ylabel("Film thickness (m)", x=-3.0)
+
+fig.supylabel("Film thickness (m)")
 
 fig.tight_layout()
 
@@ -633,7 +635,7 @@ cbar = fig.colorbar(
 fig.align_ylabels(axs[:, 0])
 fig.align_ylabels(axs[:, 1])
 fig.tight_layout()
-fig.savefig(f"Figures/{model_name}_1D_sens_all.pdf", bbox_inches="tight")
+fig.savefig(f"Figures/{model_name}_1D_sens_all_vs_tray.pdf", bbox_inches="tight")
 plt.close()
 
 print("Plot h_i, [O2_i], ... vs. z")
@@ -698,7 +700,7 @@ for tray in selected_trays:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[O2(L,film)] (mol/m^3)")
+                ax.set_ylabel("[$O_2$(L,film)] (mol/m^3)")
                 if max(concs) / min(concs) > 10:
                     ax.set_yscale("log")
                 ax.set_title("(a)", loc="left", y=1.08)
@@ -863,6 +865,6 @@ for tray in selected_trays:
     fig.align_ylabels(axs[:, 1])
     fig.tight_layout()
     fig.savefig(
-        f"Figures/{model_name}_{tray}_sens_all_vs_z.pdf",
+        f"Figures/{model_name}_1D_sens_all_vs_z_{tray}.pdf",
         bbox_inches="tight",
     )
