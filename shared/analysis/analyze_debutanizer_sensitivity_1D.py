@@ -454,7 +454,7 @@ else:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("RC.(L,bulk) (mol/m³)")
+            ax.set_ylabel("[RC.(L,bulk)] (mol/m³)")
             ax.set_yscale("log")
             ax.set_title("(a)", loc="left")
 
@@ -472,7 +472,7 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("ROO.(L,bulk) (mol/m³)")
+                ax.set_ylabel("[ROO.(L,bulk)] (mol/m³)")
                 ax.set_yscale("log")
                 ax.set_title("(b)", loc="left")
 
@@ -489,7 +489,7 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("RO.(L,bulk) (mol/m³)")
+                ax.set_ylabel("[RO.(L,bulk)] (mol/m³)")
                 ax.set_yscale("log")
                 ax.set_title("(c)", loc="left")
 
@@ -536,7 +536,7 @@ else:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("AR/mass (mol/kg)")
+            ax.set_ylabel("[AR] (mol/kg)")
             ax.set_yscale("log")
             ax.set_title("(e)", loc="left")
 
@@ -559,7 +559,7 @@ else:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("KR/mass (mol/kg)")
+            ax.set_ylabel("[KR] (mol/kg)")
             ax.set_yscale("log")
             ax.set_title("(f)", loc="left")
 
@@ -584,7 +584,7 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("PR/mass (mol/kg)")
+                ax.set_ylabel("[PR] (mol/kg)")
                 ax.set_yscale("log")
                 ax.set_title("(g)", loc="left")
 
@@ -608,7 +608,7 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("OR/mass (mol/kg)")
+                ax.set_ylabel("[OR] (mol/kg)")
                 ax.set_yscale("log")
                 ax.set_title("(h)", loc="left")
 
