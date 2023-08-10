@@ -168,14 +168,13 @@ plt.fill_between(
     alpha=0.5,
     linewidth=0,
 )
-plt.ylim([1e-2, 1e4])
+
 plt.xlabel("[$O_2$] (M)")
 plt.ylabel("Film growth rate (ng/hr)")
 plt.xscale("symlog", linthresh=1e-6)
 plt.yscale("log")
-# plt.ylim([1e-3, 1e2])
 plt.tight_layout()
-plt.legend(fontsize=9)
+plt.legend(fontsize=9, loc="upper right", bbox_to_anchor=(1.0, -0.2))
 
 os.makedirs("Figures", exist_ok=True)
 
@@ -194,7 +193,7 @@ ax.plot(xs, [get_liq_radicals_conc(liquid_simulations[perturb_factor], RO_labels
 ax.set_yscale("log")
 ax.set_ylabel("Concentration (mol/m^3)")
 ax.set_xscale("symlog", linthresh=1e-6)
-ax.set_xlabel("[O2] (M)")
+ax.set_xlabel("[$O_2$] (M)")
 ax.legend()
 
 ax = axs[1]
@@ -205,7 +204,7 @@ ax.plot(xs, [get_film_radical_reactive_site_conc(film_simulations[perturb_factor
 ax.set_yscale("log")
 ax.set_ylabel("Concentration (mol/kg)")
 ax.set_xscale("symlog", linthresh=1e-6)
-ax.set_xlabel("[O2] (M)")
+ax.set_xlabel("[$O_2$] (M)")
 ax.legend()
 
 plt.tight_layout()
@@ -221,11 +220,11 @@ for ind, perturb_factor in enumerate(perturb_factor_list):
     rops, rop_rxncomments, rop_rxnstrs = get_film_rops(film_rops[perturb_factor], "mass")
     df = film_simulations[perturb_factor]
     mass = df.loc[len(df.index)-1, "mass"]
-    normalized_rops = rops / mass
+    normalized_rops = np.array(rops / mass)
     min_rop = min(min_rop, min(normalized_rops))
     max_rop = max(max_rop, max(normalized_rops))
     ys = np.arange(len(rop_rxncomments))
-    axs[ind].barh(xs, normalized_rops, align="center")
+    axs[ind].barh(ys, normalized_rops, align="center")
     axs[ind].set_yticks(ys)
     axs[ind].set_yticklabels(rop_rxncomments)
     x = xs[ind]
@@ -234,7 +233,7 @@ for ind, perturb_factor in enumerate(perturb_factor_list):
     axs[ind].invert_yaxis()
 
 for ax in axs:
-    ax.set_xlim(min_rop, max_rop)
+    ax.set_xlim([min_rop, max_rop])
 
 axs[-1].set_xlabel("Rate of film growth (kg/(kg*s))")
 fig.tight_layout()
@@ -254,7 +253,7 @@ def plot_film_rop(name, loss_only=False, production_only=False):
         rops, rop_rxncomments, rop_rxnstrs = get_film_rops(film_rops[perturb_factor], name, loss_only=loss_only, production_only=production_only)
         df = film_simulations[perturb_factor]
         mass = df.loc[len(df.index)-1, "mass"]
-        normalized_rops = rops.abs() / mass
+        normalized_rops = np.array(rops.abs() / mass)
         min_rop = min(min_rop, min(normalized_rops))
         max_rop = max(max_rop, max(normalized_rops))
         ys = np.arange(len(rop_rxncomments))
@@ -267,14 +266,14 @@ def plot_film_rop(name, loss_only=False, production_only=False):
         axs[ind].invert_yaxis()
 
     for ax in axs:
-        ax.set_xlim(min_rop, max_rop)
+        ax.set_xlim([min_rop, max_rop])
         
     if loss_only:
         label = "loss"
     elif production_only:
         label = "production"
 
-    axs[-1].set_xlabel(f"Rate of {name} {label} (kg/(kg*s))")
+    axs[-1].set_xlabel(f"Rate of {name} {label} (mol/(kg*s))")
     fig.tight_layout()
     fig.savefig(f"Figures/QCMD_cell_model_film_rop_{label}_{name}.pdf", bbox_inches="tight")
 
