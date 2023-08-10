@@ -148,7 +148,7 @@ cbar = fig.colorbar(
     label="Trays",
     cax=cbar_ax,
 )
-ax.set_xlabel("Time (year)")
+ax.set_xlabel("Time (yr)")
 ax.set_ylabel("Film thickness (m)")
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_1D_film_thickness_vs_t.pdf", bbox_inches="tight")

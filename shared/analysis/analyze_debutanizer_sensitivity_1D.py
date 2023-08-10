@@ -307,7 +307,7 @@ fig.add_subplot(111, frameon=False)
 plt.tick_params(
     labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
 )
-plt.ylabel("Film thickness (m)", labelpad=20)
+plt.ylabel("Film thickness (m)", labelpad=30)
 
 fig.savefig(
     f"Figures/{model_name}_1D_sens_film_thickness_vs_t.pdf",
