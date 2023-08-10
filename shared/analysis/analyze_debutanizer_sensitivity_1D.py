@@ -286,12 +286,6 @@ for ax in axs.flat:
 
 fig.align_labels()
 
-fig.add_subplot(111, frameon=False)
-plt.tick_params(
-    labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
-)
-plt.ylabel("Film thickness (m)", x=-2.0)
-
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
 if model_name == "basecase_debutanizer_model":
     sm = plt.cm.ScalarMappable(cmap="RdPu", norm=plt.Normalize(vmin=0.5, vmax=1.9))
@@ -308,6 +302,13 @@ cbar = fig.colorbar(
 )
 
 fig.tight_layout()
+
+fig.add_subplot(111, frameon=False)
+plt.tick_params(
+    labelcolor="none", which="both", top=False, bottom=False, left=False, right=False
+)
+plt.ylabel("Film thickness (m)", x=-2.0)
+
 fig.savefig(
     f"Figures/{model_name}_1D_sens_film_thickness_vs_t.pdf",
     bbox_inches="tight",
