@@ -51,6 +51,7 @@ for rxn in AR_BD_RAdds:
 for rxn in AR_O2_RRecomb:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
     plt.plot(1000 / Ts, ks, label="AR + $\mathrm{O}_2$ => PR")
+    print(rxn)
     print(rxn.kinetics)
 
 for rxn in PR_BD_RAdds:
