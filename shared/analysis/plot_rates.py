@@ -18,12 +18,14 @@ for rxn in filmrxns:
         spcs = rxn.reactants
         if any(spc.label == "AR" for spc in spcs):
             if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
-                AR_BD_RAdds.append(rxn)
+                if any(spc.label == "C=C[CH]CCC(=C)C" for spc in rxn.products):
+                    AR_BD_RAdds.append(rxn)
             elif any(spc.smiles == "[O][O]" for spc in spcs):
                 AR_O2_RRecomb.append(rxn)
         elif any(spc.label == "PR" for spc in spcs):
             if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
-                PR_BD_RAdds.append(rxn)
+                if any(spc.label == "C=C[CH]COOCC(C)C" for spc in rxn.products):
+                    PR_BD_RAdds.append(rxn)
     if len(rxn.reactants) == 2 and len(rxn.products) == 2:
         spcs = rxn.reactants + rxn.products
         if any(spc.label == "AR" for spc in spcs):
