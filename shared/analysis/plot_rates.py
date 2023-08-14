@@ -41,5 +41,6 @@ for rxn in PR_BD_RAdds:
 plt.yscale("log")
 plt.xlabel("1000 / T (1/K)")
 plt.ylabel("k ($\mathrm{m}^3$/(mol*s))")
+plt.legend()
 plt.tight_layout()
 plt.savefig("Figures/reaction_rates.pdf", bbox_inches="tight")
