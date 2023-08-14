@@ -42,11 +42,11 @@ for rxn in AR_BD_RAdds:
     print(rxn)
     print(rxn.kinetics)
 
-for rxn in AR_BT_HAbs:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="AR + 2-butene hydrogen abstraction")
-    print(rxn)
-    print(rxn.kinetics)
+# for rxn in AR_BT_HAbs:
+#     ks = [rxn.get_rate_coefficient(T) for T in Ts]
+#     plt.plot(1000 / Ts, ks, label="AR + 2-butene hydrogen abstraction")
+#     print(rxn)
+#     print(rxn.kinetics)
 
 # for rxn in AR_O2_RRecomb:
 #     ks = [rxn.get_rate_coefficient(T) for T in Ts]
@@ -59,11 +59,11 @@ for rxn in PR_BD_RAdds:
     print(rxn)
     print(rxn.kinetics)
 
-for rxn in PR_BT_HAbs:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="PR + 2-butene hydrogen abstraction")
-    print(rxn)
-    print(rxn.kinetics)
+# for rxn in PR_BT_HAbs:
+#     ks = [rxn.get_rate_coefficient(T) for T in Ts]
+#     plt.plot(1000 / Ts, ks, label="PR + 2-butene hydrogen abstraction")
+#     print(rxn)
+#     print(rxn.kinetics)
 
 plt.yscale("log")
 plt.xlabel("1000 / T (1000/K)")
