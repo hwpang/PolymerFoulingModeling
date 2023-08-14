@@ -29,14 +29,17 @@ plt.figure()
 for rxn in AR_BD_RAdds:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
     plt.plot(1000 / Ts, ks, label="AR + BD radical addition")
+    print(rxn.kinetics)
 
 for rxn in AR_O2_RRecomb:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
     plt.plot(1000 / Ts, ks, label="AR + $\mathrm{O}_2$ => PR")
+    print(rxn.kinetics)
 
 for rxn in PR_BD_RAdds:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
     plt.plot(1000 / Ts, ks, label="PR + BD radical addition")
+    print(rxn.kinetics)
 
 plt.yscale("log")
 plt.xlabel("1000 / T (1/K)")
