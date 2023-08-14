@@ -17,7 +17,7 @@ for rxn in filmrxns:
         if any(spc.label == "AR" for spc in spcs):
             if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
                 AR_BD_RAdds.append(rxn)
-            elif any(spc.label == "O2" for spc in spcs):
+            elif any(spc.smiles == "[O][O]" for spc in spcs):
                 AR_O2_RRecomb.append(rxn)
         elif any(spc.label == "PR" for spc in spcs):
             if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
