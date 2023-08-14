@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+from rmgpy.chemkin import load_chemkin_file
+
+chemkin_path = "/home/gridsan/hwpang/Software/PolymerFoulingModeling/debutanizer_models/trace_oxygen_perturbed/film_mechanism/chem_annotated_film.inp"
+species_dict_path = "/home/gridsan/hwpang/Software/PolymerFoulingModeling/debutanizer_models/trace_oxygen_perturbed/film_mechanism/species_dictionary_film.txt"
+filmspcs, filmrxns = load_chemkin_file(chemkin_path, species_dict_path)
+
+AR_BD_RAdds = []
+AR_O2_RRecomb = []
+PR_BD_RAdds = []
+
+for rxn in filmrxns:
+    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
+        spcs = rxn.reactants
+        if any(spc.label == "AR" for spc in spcs):
+            if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
+                AR_BD_RAdds.append(rxn)
+            elif any(spc.label == "O2" for spc in spcs):
+                AR_O2_RRecomb.append(rxn)
+        elif any(spc.label == "PR" for spc in spcs):
+            if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
+                PR_BD_RAdds.append(rxn)
+
+Ts = np.linspace(300, 400, 50)
+plt.figure()
+
+for rxn in AR_BD_RAdds:
+    ks = [rxn.get_rate_coefficient(T) for T in Ts]
+    plt.plot(Ts, ks, label=rxn.label)
+
+for rxn in AR_O2_RRecomb:
+    ks = [rxn.get_rate_coefficient(T) for T in Ts]
+    plt.plot(Ts, ks, label=rxn.label)
+
+for rxn in PR_BD_RAdds:
+    ks = [rxn.get_rate_coefficient(T) for T in Ts]
+    plt.plot(Ts, ks, label=rxn.label)
+
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/reaction_rates.pdf", bbox_inches="tight")
