@@ -42,7 +42,7 @@ for rxn in PR_BD_RAdds:
     print(rxn.kinetics)
 
 plt.yscale("log")
-plt.xlabel("1000 / T (1/K)")
+plt.xlabel("1000 / T (1000/K)")
 plt.ylabel("k ($\mathrm{m}^3$/(mol*s))")
 plt.legend()
 plt.tight_layout()
