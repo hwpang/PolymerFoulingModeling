@@ -8,8 +8,10 @@ species_dict_path = "/home/gridsan/hwpang/Software/PolymerFoulingModeling/debuta
 filmspcs, filmrxns = load_chemkin_file(chemkin_path, species_dict_path)
 
 AR_BD_RAdds = []
+AR_BT_HAbs = []
 AR_O2_RRecomb = []
 PR_BD_RAdds = []
+PR_BT_HAbs = []
 
 for rxn in filmrxns:
     if len(rxn.reactants) == 2 and len(rxn.products) == 1:
@@ -22,6 +24,14 @@ for rxn in filmrxns:
         elif any(spc.label == "PR" for spc in spcs):
             if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
                 PR_BD_RAdds.append(rxn)
+    if len(rxn.reactants) == 2 and len(rxn.products) == 2:
+        spcs = rxn.reactants + rxn.products
+        if any(spc.label == "AR" for spc in spcs):
+            if any(spc.label == "2-BUTENE(L)" for spc in spcs):
+                AR_BT_HAbs.append(rxn)
+        elif any(spc.label == "PR" for spc in spcs):
+            if any(spc.label == "2-BUTENE(L)" for spc in spcs):
+                PR_BT_HAbs.append(rxn)
 
 Ts = np.linspace(300, 400, 50)
 plt.figure()
@@ -31,14 +41,24 @@ for rxn in AR_BD_RAdds:
     plt.plot(1000 / Ts, ks, label="AR + BD radical addition")
     print(rxn.kinetics)
 
-for rxn in AR_O2_RRecomb:
+for rxn in AR_BT_HAbs:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="AR + $\mathrm{O}_2$ => PR")
+    plt.plot(1000 / Ts, ks, label="AR + 2-butene hydrogen abstraction")
     print(rxn.kinetics)
+
+# for rxn in AR_O2_RRecomb:
+#     ks = [rxn.get_rate_coefficient(T) for T in Ts]
+#     plt.plot(1000 / Ts, ks, label="AR + $\mathrm{O}_2$ => PR")
+#     print(rxn.kinetics)
 
 for rxn in PR_BD_RAdds:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
     plt.plot(1000 / Ts, ks, label="PR + BD radical addition")
+    print(rxn.kinetics)
+
+for rxn in PR_BT_HAbs:
+    ks = [rxn.get_rate_coefficient(T) for T in Ts]
+    plt.plot(1000 / Ts, ks, label="PR + 2-butene hydrogen abstraction")
     print(rxn.kinetics)
 
 plt.yscale("log")
