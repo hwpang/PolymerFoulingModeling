@@ -28,16 +28,19 @@ plt.figure()
 
 for rxn in AR_BD_RAdds:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(Ts, ks, label=rxn.label)
+    plt.plot(1000 / Ts, ks, label=rxn.__repr__())
 
 for rxn in AR_O2_RRecomb:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(Ts, ks, label=rxn.label)
+    plt.plot(1000 / Ts, ks, label=rxn.__repr__())
 
 for rxn in PR_BD_RAdds:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(Ts, ks, label=rxn.label)
+    plt.plot(1000 / Ts, ks, label=rxn.__repr__())
 
+plt.yscale("log")
+plt.xlabel("1000 / T (1/K)")
+plt.ylabel("k ($m^3$/(mol*s))")
 plt.legend()
 plt.tight_layout()
 plt.savefig("Figures/reaction_rates.pdf", bbox_inches="tight")
