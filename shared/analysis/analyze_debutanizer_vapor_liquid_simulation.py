@@ -245,6 +245,8 @@ for consumption_path in consumption_paths:
             label = consumption_path.replace("R.", "RC.")
         else:
             label = consumption_path
+        label = label.replace("_outlet", " outlet")
+        label = label.replace("_evap", " evap")
         label = label.replace("_Add", " add")
         label = label.replace("_Habs", " Habs")
         label = label.replace("_Recomb", " recomb")
@@ -292,6 +294,8 @@ for production_path in production_paths:
             label = production_path.replace("R.", "RC.")
         else:
             label = production_path
+        label = label.replace("_inlet", " inlet")
+        label = label.replace("_cond", " cond")
         label = label.replace("_RevDisprop", " revdisprop")
         ax.bar(
             trays,

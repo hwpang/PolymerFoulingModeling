@@ -121,7 +121,7 @@ def get_film_growth_time_constants(ms, ts):
     return m / dmdt / 3600 / 24 / 365
 
 
-fig, ax = plt.subplots(nrows=1, ncols=1)
+fig, axs = plt.subplots(nrows=1, ncols=2)
 
 for tray in selected_trays:
     film_simulation = film_simulations[tray]
@@ -132,13 +132,30 @@ for tray in selected_trays:
     )
     hs = ms / rho / (1 - epsilon) / A
 
+    ax = axs[0]
     ax.plot(
         ts,
         hs,
         color=traycmap(tray / len(trays)),
         label=f"Tray {tray}",
     )
-ax.set_yscale("log")
+    ax.set_yscale("log")
+    ax.set_title("(a) Film thickness")
+    ax.set_ylabel("(m)")
+    ax.set_xlabel("Time (yr)")
+
+    ax = axs[1]
+    ax.plot(
+        ts,
+        hs,
+        color=traycmap(tray / len(trays)),
+        label=f"Tray {tray}",
+    )
+    ax.set_yscale("log")
+    ax.set_xlim([0, 1 / 12])  # show 1 month of growth
+    ax.set_title("Zoomed in on (a)")
+    ax.set_xlabel("Time (yr)")
+
 sm = plt.cm.ScalarMappable(cmap="plasma", norm=plt.Normalize(vmin=1, vmax=40))
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
 cbar = fig.colorbar(
@@ -148,8 +165,7 @@ cbar = fig.colorbar(
     label="Trays",
     cax=cbar_ax,
 )
-ax.set_xlabel("Time (yr)")
-ax.set_ylabel("Film thickness (m)")
+
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_1D_film_thickness_vs_t.pdf", bbox_inches="tight")
 
