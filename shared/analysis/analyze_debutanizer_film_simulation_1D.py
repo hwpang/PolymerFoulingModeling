@@ -198,13 +198,13 @@ colors = {
     "Diels-Alder addition": "tab:green",
     "Oxygen-center radical pathways": "tab:red",
     "Carbon-center radical pathways": "tab:gray",
-    "Other": "tab:blue",
+    # "Other": "tab:blue",
 }
 patterns = {
     "Diels-Alder addition": "//",
     "Oxygen-center radical pathways": "\\\\",
     "Carbon-center radical pathways": "||",
-    "Other": "--",
+    # "Other": "--",
 }
 labels = list(colors.keys())
 handles = [
