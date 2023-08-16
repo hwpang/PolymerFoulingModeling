@@ -3,8 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# change default font size to 12
-plt.rcParams.update({"font.size": 20})
+# change default size size to 12
+plt.rcParams.update({"font.size": 12})
 
 
 def parse_arguments():
@@ -165,34 +165,36 @@ lines = [
     "-d",
 ]
 
+trays = range(1, 41)
+
 # Create subplots
 if model_name == "basecase_debutanizer_model":
-    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(10, 14))
+    fig, axs = plt.subplots(nrows=4, ncols=2, figsize=(10, 14), sharex=True)
 elif model_name == "trace_oxygen_perturbed_debutanizer_model":
-    fig, axs = plt.subplots(nrows=5, ncols=2, figsize=(10, 17))
+    fig, axs = plt.subplots(nrows=5, ncols=2, figsize=(7, 12), sharex=True)
 
 # Adjust subplot spacing
 fig.subplots_adjust(wspace=0, hspace=0)
 
 # Plot temperature data
-axs[0, 0].plot(range(1, 41), T, color="k", marker="o")
-axs[0, 0].set_ylabel("Temperature (K)", size=20)
-axs[0, 0].set_title("(a)", loc="left", size=20)
-axs[0, 0].set_xticklabels([])
+axs[0, 0].plot(trays, T, color="k", marker="o")
+axs[0, 0].set_title("(a) Temperature", loc="left", size=12)
+axs[0, 0].set_ylabel("(K)")
 
 # Plot liquid concentration data
 for i, spc in enumerate(spcnames):
+    if spc == "OXYGEN":
+        continue
     label = spc
     axs[1, 0].plot(
-        range(1, 41),
+        trays,
         initial_conditions["liquid_concentration"][spc],
         lines[i],
         label=label,
     )
 
-axs[1, 0].set_ylabel("Conc. (mol/m^3)", size=20)
-axs[1, 0].set_title("(b) Liquid phase", loc="left", size=20)
-axs[1, 0].set_xticklabels([])
+axs[1, 0].set_title("(b) [major species(L)]", loc="left", size=12)
+axs[1, 0].set_ylabel("(mol/m^3)")
 axs[1, 0].plot([0, 0], [-400, 800], "k--")
 axs[1, 0].plot([0, 41], [-400, -400], "k--")
 axs[1, 0].plot([41, 41], [-400, 800], "k--")
@@ -200,31 +202,34 @@ axs[1, 0].plot([0, 41], [800, 800], "k--")
 
 # Plot zoomed-in liquid concentration data
 for i, spc in enumerate(spcnames):
+    if spc == "OXYGEN":
+        continue
     label = spc
     axs[2, 0].plot(
-        range(1, 41),
+        trays,
         initial_conditions["liquid_concentration"][spc],
         lines[i],
         label=label,
     )
 
-axs[2, 0].set_ylabel("Conc. (mol/m^3)", size=20)
+axs[2, 0].set_title("Zoomed in on (b)", loc="left", size=12)
+axs[2, 0].set_ylabel("(mol/m^3)")
 axs[2, 0].set_ylim([-20, 600])
-axs[2, 0].set_title("Zoomed in on (b)", loc="left", size=20)
 axs[2, 0].set_xticklabels([])
 
 # Plot vapor concentration data
 for i, spc in enumerate(spcnames):
+    if spc == "OXYGEN":
+        continue
     label = spc
     axs[1, 1].plot(
-        range(1, 41),
+        trays,
         initial_conditions["vapor_concentration"][spc],
         lines[i],
         label=label,
     )
 
-axs[1, 1].set_title("(c) Vapor phase", loc="left", size=20)
-axs[1, 1].set_xticklabels([])
+axs[1, 1].set_title("(c) [major species(V)]", loc="left", size=12)
 axs[1, 1].plot([0, 0], [-10, 20], "k--")
 axs[1, 1].plot([0, 41], [-10, -10], "k--")
 axs[1, 1].plot([41, 41], [-10, 20], "k--")
@@ -233,47 +238,45 @@ axs[1, 1].plot([0, 41], [20, 20], "k--")
 handles, labels = axs[1, 1].get_legend_handles_labels()
 
 # Hide the second subplot in the first row
-axs[0, 1].legend(handles=handles, loc="center", fontsize=14)
+axs[0, 1].legend(handles=handles, loc="center")
 axs[0, 1].axis("off")
 
 # Plot zoomed-in vapor concentration data
 for i, spc in enumerate(spcnames):
+    if spc == "OXYGEN":
+        continue
     label = spc
     axs[2, 1].plot(
-        range(1, 41),
+        trays,
         initial_conditions["vapor_concentration"][spc],
         lines[i],
         label=label,
     )
 
 axs[2, 1].set_ylim([-1, 20])
-axs[2, 1].set_title("Zoomed in on (c)", loc="left", size=20)
+axs[2, 1].set_title("Zoomed in on (c)", loc="left", size=12)
 axs[2, 1].set_xticklabels([])
 
 # Plot liquid phase residence time
 flowrate = np.array(initial_conditions["liquid_outlet_volumetric_flowrate"])
 flowrate[-1] = flowrate[-2]
 residence_times = Vliq / flowrate
-axs[3, 0].plot(range(1, 41), residence_times, color="k", marker="o")
-axs[3, 0].set_ylabel("Residence time (s)", size=20)
-axs[3, 0].set_title("(d) Liquid phase", loc="left", size=20)
+axs[3, 0].plot(trays, residence_times, color="k", marker="o")
+axs[3, 0].set_ylabel("(s)")
+axs[3, 0].set_title("(d) $\\tau_\mathrm{res}$(L)", loc="left", size=12)
 axs[3, 0].set_ylim([0, np.max(residence_times) * 1.1])
 if model_name == "basecase_debutanizer_model":
-    axs[3, 0].set_xlabel("Tray", size=20)
-elif model_name == "trace_oxygen_perturbed_debutanizer_model":
-    axs[3, 0].set_xticklabels([])
+    axs[3, 0].set_xlabel("Tray")
 
 # Plot vapor phase residence time
 flowrate = np.array(initial_conditions["vapor_outlet_volumetric_flowrate"])
 flowrate[0] = flowrate[1]
 residence_times = Vvap / flowrate
-axs[3, 1].plot(range(1, 41), residence_times, color="k", marker="o")
-axs[3, 1].set_title("(e) Vapor phase", loc="left", size=20)
+axs[3, 1].plot(trays, residence_times, color="k", marker="o")
+axs[3, 1].set_title("(e) $\\tau_\mathrm{res}$(V)", loc="left", size=12)
 axs[3, 1].set_ylim([0, np.max(residence_times) * 1.1])
 if model_name == "basecase_debutanizer_model":
-    axs[3, 1].set_xlabel("Tray", size=20)
-elif model_name == "trace_oxygen_perturbed_debutanizer_model":
-    axs[3, 1].set_xticklabels([])
+    axs[3, 1].set_xlabel("Tray")
 
 # Plot additional plots for "trace_oxygen_perturbed_debutanizer_model"
 if model_name == "trace_oxygen_perturbed_debutanizer_model":
@@ -281,30 +284,31 @@ if model_name == "trace_oxygen_perturbed_debutanizer_model":
     i = spcnames.index(spc)
     label = spc
     axs[4, 0].plot(
-        range(1, 41),
+        trays,
         initial_conditions["liquid_concentration"][spc],
         lines[i],
         label=spc,
         color="C8",
     )
-    axs[4, 0].set_ylabel("Conc. (mol/m^3)", size=20)
-    axs[4, 0].set_title("(f) Liquid phase", loc="left", size=20)
-    axs[4, 0].set_xlabel("Tray", size=20)
+    axs[4, 0].set_ylabel("(mol/m^3)")
+    axs[4, 0].set_title("(f) [$\mathrm{O}_2$(L)]", loc="left", size=12)
+    axs[4, 0].set_xlabel("Tray")
     axs[4, 0].set_yscale("log")
     axs[4, 0].set_ylim([1e-18, 1e0])
 
     axs[4, 1].plot(
-        range(1, 41),
+        trays,
         initial_conditions["vapor_concentration"][spc],
         lines[i],
         label=spc,
         color="C8",
     )
-    axs[4, 1].set_title("(g) Vapor phase", loc="left", size=20)
-    axs[4, 1].set_xlabel("Tray", size=20)
+    axs[4, 1].set_title("(g) [$\mathrm{O}_2$(V)]", loc="left", size=12)
+    axs[4, 1].set_xlabel("Tray")
     axs[4, 1].set_yscale("log")
     axs[4, 0].set_ylim([1e-18, 1e0])
 
+fig.align_labels()
 fig.tight_layout()
 
 # Save the figure
