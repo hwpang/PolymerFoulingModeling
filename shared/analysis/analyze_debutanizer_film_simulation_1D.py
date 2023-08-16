@@ -121,7 +121,7 @@ def get_film_growth_time_constants(ms, ts):
     return m / dmdt / 3600 / 24 / 365
 
 
-fig, axs = plt.subplots(nrows=1, ncols=2)
+fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
 
 for tray in selected_trays:
     film_simulation = film_simulations[tray]
@@ -140,21 +140,21 @@ for tray in selected_trays:
         label=f"Tray {tray}",
     )
     ax.set_yscale("log")
-    ax.set_title("(a) Film thickness")
+    ax.set_title("(a) Film thickness", loc="left")
     ax.set_ylabel("(m)")
     ax.set_xlabel("Time (yr)")
 
     ax = axs[1]
     ax.plot(
-        ts,
+        ts * 12,
         hs,
         color=traycmap(tray / len(trays)),
         label=f"Tray {tray}",
     )
     ax.set_yscale("log")
-    ax.set_xlim([0, 1 / 12])  # show 1 month of growth
-    ax.set_title("Zoomed in on (a)")
-    ax.set_xlabel("Time (yr)")
+    ax.set_xlim([0, 1])  # show 1 month of growth
+    ax.set_title("Zoomed in on (a)", loc="left")
+    ax.set_xlabel("Time (month)")
 
 sm = plt.cm.ScalarMappable(cmap="plasma", norm=plt.Normalize(vmin=1, vmax=40))
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
