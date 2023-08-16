@@ -245,6 +245,12 @@ for consumption_path in consumption_paths:
             label = consumption_path.replace("R.", "RC.")
         else:
             label = consumption_path
+        label = label.replace("_Add", " add")
+        label = label.replace("_Habs", " Habs")
+        label = label.replace("_Recomb", " recomb")
+        label = label.replace("_Disprop", " disprop")
+        label = label.replace("_CycEther", " cyc")
+        label = label.replace("_eli", " eli")
         ax.bar(
             trays,
             percentages,
@@ -286,6 +292,7 @@ for production_path in production_paths:
             label = production_path.replace("R.", "RC.")
         else:
             label = production_path
+        label = label.replace("_RevDisprop", " revdisprop")
         ax.bar(
             trays,
             percentages,
