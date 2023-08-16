@@ -193,7 +193,7 @@ for i, spc in enumerate(spcnames):
         label=label,
     )
 
-axs[1, 0].set_title("(b) [major species(L)]", loc="left", size=12)
+axs[1, 0].set_title("(b) [major species(liq)]", loc="left", size=12)
 axs[1, 0].set_ylabel("(mol/m^3)")
 axs[1, 0].plot([0, 0], [-400, 800], "k--")
 axs[1, 0].plot([0, 41], [-400, -400], "k--")
@@ -229,7 +229,7 @@ for i, spc in enumerate(spcnames):
         label=label,
     )
 
-axs[1, 1].set_title("(c) [major species(V)]", loc="left", size=12)
+axs[1, 1].set_title("(c) [major species(vap)]", loc="left", size=12)
 axs[1, 1].plot([0, 0], [-10, 20], "k--")
 axs[1, 1].plot([0, 41], [-10, -10], "k--")
 axs[1, 1].plot([41, 41], [-10, 20], "k--")
@@ -263,7 +263,7 @@ flowrate[-1] = flowrate[-2]
 residence_times = Vliq / flowrate
 axs[3, 0].plot(trays, residence_times, color="k", marker="o")
 axs[3, 0].set_ylabel("(s)")
-axs[3, 0].set_title("(d) $\\tau_\mathrm{res}$(L)", loc="left", size=12)
+axs[3, 0].set_title("(d) $\\tau_\mathrm{res}$(liq)", loc="left", size=12)
 axs[3, 0].set_ylim([0, np.max(residence_times) * 1.1])
 if model_name == "basecase_debutanizer_model":
     axs[3, 0].set_xlabel("Tray")
@@ -273,7 +273,7 @@ flowrate = np.array(initial_conditions["vapor_outlet_volumetric_flowrate"])
 flowrate[0] = flowrate[1]
 residence_times = Vvap / flowrate
 axs[3, 1].plot(trays, residence_times, color="k", marker="o")
-axs[3, 1].set_title("(e) $\\tau_\mathrm{res}$(V)", loc="left", size=12)
+axs[3, 1].set_title("(e) $\\tau_\mathrm{res}$(vap)", loc="left", size=12)
 axs[3, 1].set_ylim([0, np.max(residence_times) * 1.1])
 if model_name == "basecase_debutanizer_model":
     axs[3, 1].set_xlabel("Tray")
@@ -291,7 +291,7 @@ if model_name == "trace_oxygen_perturbed_debutanizer_model":
         color="C8",
     )
     axs[4, 0].set_ylabel("(mol/m^3)")
-    axs[4, 0].set_title("(f) [$\mathrm{O}_2$(L)]", loc="left", size=12)
+    axs[4, 0].set_title("(f) [$\mathrm{O}_2$(liq)]", loc="left", size=12)
     axs[4, 0].set_xlabel("Tray")
     axs[4, 0].set_yscale("log")
     axs[4, 0].set_ylim([1e-18, 1e0])
@@ -303,7 +303,7 @@ if model_name == "trace_oxygen_perturbed_debutanizer_model":
         label=spc,
         color="C8",
     )
-    axs[4, 1].set_title("(g) [$\mathrm{O}_2$(V)]", loc="left", size=12)
+    axs[4, 1].set_title("(g) [$\mathrm{O}_2$(vap)]", loc="left", size=12)
     axs[4, 1].set_xlabel("Tray")
     axs[4, 1].set_yscale("log")
     axs[4, 0].set_ylim([1e-18, 1e0])
