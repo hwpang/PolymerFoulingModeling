@@ -239,7 +239,7 @@ total_consumption_rates = np.sum(
 count = 0
 for consumption_path in consumption_paths:
     percentages = consumption_rates[consumption_path] / total_consumption_rates * 100
-    if any(percentages > 2):
+    if any(percentages > 5):
         if "R." in consumption_path and model_name != "basecase_debutanizer_model":
             label = consumption_path.replace("R.", "RC.")
         else:
@@ -280,7 +280,7 @@ total_production_rates = np.sum(
 count = 0
 for production_path in production_paths:
     percentages = production_rates[production_path] / total_production_rates * 100
-    if any(percentages > 2):
+    if any(percentages > 5):
         if "R." in production_path and model_name != "basecase_debutanizer_model":
             label = production_path.replace("R.", "RC.")
         else:
