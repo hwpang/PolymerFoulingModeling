@@ -454,9 +454,9 @@ else:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("[RC.(L,bulk)] (mol/m³)")
+            ax.set_ylabel("(mol/m³)")
             ax.set_yscale("log")
-            ax.set_title("(a)", loc="left")
+            ax.set_title("(a) [RC.(liq)]", loc="left")
 
             if perturbed_factor != "0.0":
                 ax = axs[0, 1]
@@ -472,9 +472,9 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[ROO.(L,bulk)] (mol/m³)")
+                ax.set_ylabel("(mol/m³)")
                 ax.set_yscale("log")
-                ax.set_title("(b)", loc="left")
+                ax.set_title("(b) [ROO.(liq)]", loc="left")
 
                 ax = axs[1, 0]
                 liquid_alkoxyl_radical_concs = (
@@ -489,9 +489,9 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[RO.(L,bulk)] (mol/m³)")
+                ax.set_ylabel("(mol/m³)")
                 ax.set_yscale("log")
-                ax.set_title("(c)", loc="left")
+                ax.set_title("(c) [RO.(liq)]", loc="left")
 
             ax = axs[1, 1]
             ms = [
@@ -513,9 +513,9 @@ else:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("Film thickness (m)")
+            ax.set_ylabel("(m)")
             ax.set_yscale("log")
-            ax.set_title("(d)", loc="left")
+            ax.set_title("(d) Film thickness", loc="left")
 
             ax = axs[2, 0]
             concs = [
@@ -536,9 +536,9 @@ else:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("[AR] (mol/kg)")
+            ax.set_ylabel("(mol/kg)")
             ax.set_yscale("log")
-            ax.set_title("(e)", loc="left")
+            ax.set_title("(e) [AR]", loc="left")
 
             ax = axs[2, 1]
             concs = [
@@ -559,9 +559,9 @@ else:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("[KR] (mol/kg)")
+            ax.set_ylabel("(mol/kg)")
             ax.set_yscale("log")
-            ax.set_title("(f)", loc="left")
+            ax.set_title("(f) [KR]", loc="left")
 
             if perturbed_factor != "0.0":
                 ax = axs[3, 0]
@@ -584,9 +584,9 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[PR] (mol/kg)")
+                ax.set_ylabel("(mol/kg)")
                 ax.set_yscale("log")
-                ax.set_title("(g)", loc="left")
+                ax.set_title("(g) [PR]", loc="left")
 
                 ax = axs[3, 1]
                 concs = [
@@ -608,9 +608,9 @@ else:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[OR] (mol/kg)")
+                ax.set_ylabel("(mol/kg)")
                 ax.set_yscale("log")
-                ax.set_title("(h)", loc="left")
+                ax.set_title("(h) [OR]", loc="left")
 
 
 axs[-1, 0].set_xlabel("Trays")
@@ -698,10 +698,10 @@ for tray in selected_trays:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[$O_2$(L,film)] (mol/m^3)")
+                ax.set_ylabel("(mol/$\mathrm{m}^3$)")
                 if max(concs) / min(concs) > 10:
                     ax.set_yscale("log")
-                ax.set_title("(a)", loc="left", y=1.08)
+                ax.set_title("(a) [$\mathrm{O}_2$(liq$\in$film)]", loc="left", y=1.08)
 
             ax = axs[1, 0]
             concs = list(
@@ -728,10 +728,10 @@ for tray in selected_trays:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("[RC.(L,film)] (mol/m^3)")
+            ax.set_ylabel("(mol/$\mathrm{m}^3$)")
             if max(concs) / min(concs) > 10:
                 ax.set_yscale("log")
-            ax.set_title("(b)", loc="left", y=1.08)
+            ax.set_title("(b) [RC.(liq$\in$film)]", loc="left", y=1.08)
 
             if perturbed_factor != "0.0":
                 ax = axs[2, 0]
@@ -759,10 +759,10 @@ for tray in selected_trays:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[ROO.(L,film)] (mol/m^3)")
+                ax.set_ylabel("(mol/$\mathrm{m}^3$)")
                 if max(concs) / min(concs) > 10:
                     ax.set_yscale("log")
-                ax.set_title("(c)", loc="left", y=1.08)
+                ax.set_title("(c) [ROO.(liq$\in$film)]", loc="left", y=1.08)
                 # ax.set_xlabel("z/h (-)")
                 ax.set_xlabel("z (m)")
 
@@ -785,10 +785,10 @@ for tray in selected_trays:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("[AR] (mol/kg)")
+            ax.set_ylabel("(mol/kg)")
             if max(concs) / min(concs) > 10:
                 ax.set_yscale("log")
-            ax.set_title("(d)", loc="left", y=1.08)
+            ax.set_title("(d) [AR]", loc="left", y=1.08)
 
             ax = axs[1, 1]
             concs = list(
@@ -809,10 +809,10 @@ for tray in selected_trays:
                 "-o",
                 color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
             )
-            ax.set_ylabel("[KR] (mol/kg)")
+            ax.set_ylabel("(mol/kg)")
             if max(concs) / min(concs) > 10:
                 ax.set_yscale("log")
-            ax.set_title("(e)", loc="left", y=1.08)
+            ax.set_title("(e) [KR]", loc="left", y=1.08)
 
             if perturbed_factor != "0.0":
                 ax = axs[2, 1]
@@ -834,10 +834,10 @@ for tray in selected_trays:
                     "-o",
                     color=factorcmap(factor_ind / len(perturbed_factor_string_list)),
                 )
-                ax.set_ylabel("[PR] (mol/kg)")
+                ax.set_ylabel("(mol/kg)")
                 if max(concs) / min(concs) > 10:
                     ax.set_yscale("log")
-                ax.set_title("(f)", loc="left", y=1.08)
+                ax.set_title("(f) [PR]", loc="left", y=1.08)
                 # ax.set_xlabel("z/h (-)")
                 ax.set_xlabel("z (m)")
 
