@@ -113,6 +113,7 @@ for tray in trays:
 
 traycmap = plt.get_cmap("plasma")
 selected_trays = [1, 10, 20, 30, 40]
+linestyles = ["-", "--", "-.", ":", "-"]
 
 
 def get_film_growth_time_constants(ms, ts):
@@ -121,9 +122,9 @@ def get_film_growth_time_constants(ms, ts):
     return m / dmdt / 3600 / 24 / 365
 
 
-fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 4), sharey=True)
+fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 4))
 
-for tray in selected_trays:
+for ind, tray in enumerate(selected_trays):
     film_simulation = film_simulations[tray]
 
     ts = np.array(film_simulation["timestamp"]) / 3600.0 / 24.0 / 365.0
@@ -138,16 +139,21 @@ for tray in selected_trays:
         hs,
         color=traycmap(tray / len(trays)),
         label=f"Tray {tray}",
+        linestyle=linestyles[ind],
     )
     ax.set_yscale("log")
     ax.set_title("(a) Film thickness", loc="left")
     ax.set_ylabel("(m)")
     ax.set_xlabel("Time (yr)")
 
-    ax.plot([0, 0], [1e-5, 1e0], "k--")
-    ax.plot([0, 1 / 12 / 2], [1e-5, 1e-5], "k--")
-    ax.plot([1 / 12 / 2, 1 / 12 / 2], [1e-5, 1e0], "k--")
-    ax.plot([0, 1 / 12 / 2], [1e0, 1e0], "k--")
+    left_bound = 0
+    right_bound = 1 / 12 / 4
+    top_bound = 1e0
+    bottom_bound = 1e-4
+    ax.plot([left_bound, left_bound], [bottom_bound, top_bound], "k--")
+    ax.plot([left_bound, right_bound], [bottom_bound, bottom_bound], "k--")
+    ax.plot([right_bound, right_bound], [bottom_bound, top_bound], "k--")
+    ax.plot([left_bound, right_bound], [top_bound, top_bound], "k--")
 
     ax = axs[1]
     ax.plot(
@@ -155,21 +161,13 @@ for tray in selected_trays:
         hs,
         color=traycmap(tray / len(trays)),
         label=f"Tray {tray}",
+        linestyle=linestyles[ind],
     )
     ax.set_yscale("log")
-    ax.set_xlim([0, 2])  # show 2 weeks of growth
+    ax.set_xlim([0, 1])  # show 1 weeks of growth
     ax.set_title("Zoomed in on (a)", loc="left")
     ax.set_xlabel("Time (week)")
-
-sm = plt.cm.ScalarMappable(cmap="plasma", norm=plt.Normalize(vmin=1, vmax=40))
-cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
-cbar = fig.colorbar(
-    sm,
-    ticks=selected_trays,
-    orientation="vertical",
-    label="Trays",
-    cax=cbar_ax,
-)
+    ax.set_ylim([bottom_bound, top_bound])
 
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_1D_film_thickness_vs_t.pdf", bbox_inches="tight")
@@ -249,6 +247,9 @@ for ind, tray in enumerate(selected_trays):
     rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
         film_rate_of_productions_t0, tray, cell_inds, "mass"
     )
+    rop_rxncomments = [
+        rop_rxncomment.replace("[O][O]", "O2") for rop_rxncomment in rop_rxncomments
+    ]
     colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
     colors = [color for color, pattern in colors_patterns]
     patterns = [pattern for color, pattern in colors_patterns]
@@ -280,6 +281,9 @@ for ind, tray in enumerate(selected_trays):
     rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
         film_rate_of_productions, tray, cell_inds, "mass"
     )
+    rop_rxncomments = [
+        rop_rxncomment.replace("[O][O]", "O2") for rop_rxncomment in rop_rxncomments
+    ]
     colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
     colors = [color for color, pattern in colors_patterns]
     patterns = [pattern for color, pattern in colors_patterns]

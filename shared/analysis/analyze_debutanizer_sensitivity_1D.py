@@ -289,17 +289,24 @@ fig.align_labels()
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
 if model_name == "basecase_debutanizer_model":
     sm = plt.cm.ScalarMappable(cmap="RdPu", norm=plt.Normalize(vmin=0.5, vmax=1.9))
+    cbar = fig.colorbar(
+        sm,
+        ticks=perturbed_factor_num_list,
+        orientation="vertical",
+        label="Perturbation",
+        cax=cbar_ax,
+    )
 else:
     sm = plt.cm.ScalarMappable(
         cmap="RdPu", norm=plt.matplotlib.colors.LogNorm(vmin=1e-7, vmax=1e0)
     )
-cbar = fig.colorbar(
-    sm,
-    ticks=perturbed_factor_num_list,
-    orientation="vertical",
-    label="Perturbation",
-    cax=cbar_ax,
-)
+    cbar = fig.colorbar(
+        sm,
+        ticks=perturbed_factor_num_list,
+        orientation="vertical",
+        label="$[\mathrm{O}_2]/[\mathrm{O}_2]_\mathrm{sat}$",
+        cax=cbar_ax,
+    )
 
 fig.tight_layout()
 
@@ -619,17 +626,25 @@ axs[-1, 1].set_xlabel("Trays")
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
 if model_name == "basecase_debutanizer_model":
     sm = plt.cm.ScalarMappable(cmap="RdPu", norm=plt.Normalize(vmin=0.5, vmax=1.9))
+    cbar = fig.colorbar(
+        sm,
+        ticks=perturbed_factor_num_list,
+        orientation="vertical",
+        label="Perturbation",
+        cax=cbar_ax,
+    )
 else:
     sm = plt.cm.ScalarMappable(
         cmap="RdPu", norm=plt.matplotlib.colors.LogNorm(vmin=1e-7, vmax=1e0)
     )
-cbar = fig.colorbar(
-    sm,
-    ticks=perturbed_factor_num_list,
-    orientation="vertical",
-    label="Perturbation",
-    cax=cbar_ax,
-)
+    cbar = fig.colorbar(
+        sm,
+        ticks=perturbed_factor_num_list,
+        orientation="vertical",
+        label="$[\mathrm{O}_2]/[\mathrm{O}_2]_\mathrm{sat}$",
+        cax=cbar_ax,
+    )
+
 fig.align_ylabels(axs[:, 0])
 fig.align_ylabels(axs[:, 1])
 fig.tight_layout()
@@ -848,17 +863,25 @@ for tray in selected_trays:
     cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
     if model_name == "basecase_debutanizer_model":
         sm = plt.cm.ScalarMappable(cmap="RdPu", norm=plt.Normalize(vmin=0.5, vmax=1.9))
+        cbar = fig.colorbar(
+            sm,
+            ticks=perturbed_factor_num_list,
+            orientation="vertical",
+            label="Perturbation",
+            cax=cbar_ax,
+        )
     else:
         sm = plt.cm.ScalarMappable(
             cmap="RdPu", norm=plt.matplotlib.colors.LogNorm(vmin=1e-7, vmax=1e0)
         )
-    cbar = fig.colorbar(
-        sm,
-        ticks=perturbed_factor_num_list,
-        orientation="vertical",
-        label="Perturbation",
-        cax=cbar_ax,
-    )
+        cbar = fig.colorbar(
+            sm,
+            ticks=perturbed_factor_num_list,
+            orientation="vertical",
+            label="$[\mathrm{O}_2]/[\mathrm{O}_2]_\mathrm{sat}$",
+            cax=cbar_ax,
+        )
+
     fig.align_ylabels(axs[:, 0])
     fig.align_ylabels(axs[:, 1])
     fig.tight_layout()
