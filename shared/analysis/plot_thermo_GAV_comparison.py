@@ -199,12 +199,14 @@ elif model_name == "trace_oxygen_perturbed_debutanizer_model":
 
     ax = axes[0, 0]
     ax.hist(QM_H298 - GAV_H298, edgecolor="black", bins=50)
-    ax.set_xlabel("$\Delta_\mathrm{f}H^o$(298 K) QM - GAV (kcal/mol)")
+    ax.set_title("(a) $\Delta_\mathrm{f}H^o$(298 K)", loc="left")
+    ax.set_xlabel("QM - GAV (kcal/mol)")
     ax.set_ylabel("Count")
 
     ax = axes[0, 1]
     ax.hist(QM_S298 - GAV_S298, edgecolor="black", bins=50)
-    ax.set_xlabel("$\Delta_\mathrm{f}S^o$(298 K) QM - GAV (cal/mol/K)")
+    ax.set_title("(b) $\Delta_\mathrm{f}S^o$(298 K)", loc="left")
+    ax.set_xlabel("QM - GAV (cal/mol/K)")
     ax.set_ylabel("Count")
 
     ax = axes[1, 0]
@@ -216,7 +218,8 @@ elif model_name == "trace_oxygen_perturbed_debutanizer_model":
     ax.plot([min_oxygen_num - 0.5, max_oxygen_num + 0.5], [0, 0], "--", color="gray")
     ax.set_xticks(range(min_oxygen_num, max_oxygen_num + 1))
     ax.set_xticklabels(range(min_oxygen_num, max_oxygen_num + 1))
-    ax.set_ylabel("$\Delta_\mathrm{f}H^o$(298 K) QM - GAV (kcal/mol)")
+    ax.set_title("(a) grouped by number of oxygen atoms", loc="left")
+    ax.set_ylabel("QM - GAV (kcal/mol)")
     ax.set_xlabel("Number of oxygen atoms")
 
     ax = axes[1, 1]
@@ -228,11 +231,13 @@ elif model_name == "trace_oxygen_perturbed_debutanizer_model":
     ax.plot([min_oxygen_num - 0.5, max_oxygen_num + 0.5], [0, 0], "--", color="gray")
     ax.set_xticks(range(min_oxygen_num, max_oxygen_num + 1))
     ax.set_xticklabels(range(min_oxygen_num, max_oxygen_num + 1))
-    ax.set_ylabel("$\Delta_\mathrm{f}S^o$(298 K) QM - GAV (cal/mol/K)")
+    ax.set_title("(b) grouped by number of oxygen atoms", loc="left")
+    ax.set_ylabel("QM - GAV (cal/mol/K)")
     ax.set_xlabel("Number of oxygen atoms")
 
+    fig.align_labels()
     fig.tight_layout()
-    fig.savefig("Figures/QM_GAV_comparison.pdf")
+    fig.savefig("Figures/QM_GAV_comparison.pdf", bbox_inches="tight")
 
 else:
     raise ValueError("Unknown model name.")
