@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-# LLsub ./submit_1_extract_and_plot_aspen_conditions.sh [1,1,48] -q spot-xeon-p8
+# LLsub ./submit_1_extract_and_plot_aspen_conditions_LLsub.sh [1,1,48] -q spot-xeon-p8
 # squeue -p spot-xeon-p8
 # watch LLloadSpot
 
@@ -23,8 +23,8 @@ model_name=trace_oxygen_perturbed_debutanizer_model
 aspen_results_path=$PFM_PATH/debutanizer_models/trace_oxygen_perturbed/aspen_simulation/Distillation_FEDP_XN_V2_060720_v2_oxygen.xlsx
 
 start_time=$(date +%s)
-python $PFM_PATH/debutanizer_models/basecase/aspen_simulation/extract_and_plot_aspen_conditions.py
---model_name $model_name \
+python $PFM_PATH/shared/aspen_condition_extraction/extract_and_plot_aspen_conditions.py \
+    --model_name $model_name \
     --aspen_results_path $aspen_results_path
 end_time=$(date +%s)
 

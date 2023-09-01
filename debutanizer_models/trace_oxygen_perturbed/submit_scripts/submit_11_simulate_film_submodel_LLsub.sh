@@ -1,8 +1,15 @@
 #!/bin/bash -l
-#SBATCH -J simulate_film_phase_submodel
-#SBATCH -o slurm-simulate_film_phase_submodel-%a.out
-#SBATCH -n 3
-#SBATCH --array=0-127
+
+# LLsub ./submit_7_simulate_film_submodel_LLsub.sh [27,12,4] -q spot-xeon-p8
+# watch LLloadSpot
+
+echo "============================================================"
+echo "Job ID : $SLURM_JOB_ID"
+echo "Job Name : $SLURM_JOB_NAME"
+echo "Starting on : $(date)"
+echo "Running on node : $SLURMD_NODENAME"
+echo "Current directory : $(pwd)"
+echo "============================================================"
 
 conda activate rmg_py3_20230404
 
@@ -11,8 +18,8 @@ which python-jl
 
 PFM_PATH=/home/gridsan/hwpang/Software/PolymerFoulingModeling
 
-rms_path=$PFM_PATH/debutanizer_models/trace_oxygen_perturbed/film_mechanism/chem_film_phase.rms
-aspen_condition_path=$PFM_PATH/debutanizer_models/trace_oxygen_perturbed/aspen_simulation/aspen_conditions_oxygen.yml
+rms_mech_directory=film_mechanism
+aspen_condition_path=$PFM_PATH/debutanizer_models/trace_oxygen_perturbed/aspen_simulation/aspen_conditions.yml
 model_name="trace_oxygen_perturbed_debutanizer_model"
 
 jobs=()
@@ -27,9 +34,9 @@ for perturb_species in "${perturb_species_list[@]}"; do
     done
 done
 
-for jobind in $(seq $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_COUNT ${#jobs[@]}); do
-    echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
-    echo "SLURM_ARRAY_TASK_COUNT: $SLURM_ARRAY_TASK_COUNT"
+for jobind in $(seq $LLSUB_RANK $LLSUB_SIZE ${#jobs[@]}); do
+    echo "LLSUB_RANK: $LLSUB_RANK"
+    echo "LLSUB_SIZE: $LLSUB_SIZE"
     echo "jobind: $jobind"
     echo "${jobs[$jobind]}"
     job=(${jobs[$jobind]})
@@ -38,8 +45,8 @@ for jobind in $(seq $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_COUNT ${#jobs[@]}); d
     tray=${job[2]}
     start=$(date +%s)
     liquid_simulation_results_path="simulation_results/${perturb_species}_${perturb_factor}_3600.0_32.0/simulation_vapor_liquid_yliqn_3616.0.csv"
-    julia $PFM_PATH/debutanizer_models/basecase/film_simulation/simulate_film_submodel.jl \
-        $rms_path \
+    julia $PFM_PATH/shared/film_simulation/simulate_film_submodel.jl \
+        $rms_mech_directory \
         $model_name \
         $liquid_simulation_results_path \
         $aspen_condition_path \

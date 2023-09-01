@@ -1,9 +1,8 @@
 #!/bin/bash
-#SBATCH -J liquid_phase_mechanism
-#SBATCH -n 12
-#SBATCH -o slurm-liquid_phase_mechanism.out
-#SBATCH --mem=0
-#SBATCH --exclusive
+
+# LLsub ./submit_3_generate_liquid_mechanism_LLsub.sh [1,12,4] -q spot-xeon-p8
+# squeue -p spot-xeon-p8
+# watch LLloadSpot
 
 echo "============================================================"
 echo "Job ID : $SLURM_JOB_ID"
