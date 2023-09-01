@@ -260,11 +260,24 @@ end
 
 println("Solving film phase submodel...")
 
+function update_oligomer_mw!(inter::FragmentBasedReactiveFilmGrowthInterfaceConstantT, domainliq::T, oligomer_Mw::Float64) where {T<:AbstractDomain}
+    Mws = inter.Mws
+    for spc in domainliq.phase.species
+        if occursin("(L,oligomer)", spc.name)
+            ind = findfirst(isequal(spc.name), liqspcnames) + domainliq.indexes[1] - 1
+            println("Updating Mw for ", spc.name, " from ", Mws[ind], " to ", oligomer_Mw, " kg/mol")
+            Mws[ind] = oligomer_Mw
+        end
+    end
+    inter.Mws = Mws
+end
+
 domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds);
 
 domainliq, y0liq, pliq = ConstantTVDomain(phase=liq_without_rxns, initialconds=liqinitialconds, constantspecies=liqspcnames);
 
 inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns);
+update_oligomer_mw!(inter, domainliq, oligomer_Mw)
 
 react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf0), (inter,), (pfilm, pliq, pinter));
 
@@ -836,6 +849,7 @@ if method == "same_initial_size"
     domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
     domainliq, y0liq, pliq = ConstantTLiqFilmDomain(phase=liq_with_rxns, initialconds=liqinitialconds)
     inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns)
+    update_oligomer_mw!(inter, domainliq, oligomer_Mw)
     react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
 
     num_variables = length(y0)
@@ -902,6 +916,7 @@ elseif method == "callback"
     domainfilm, y0film, pfilm = FragmentBasedConstantTrhoDomain(phase=film, initialconds=filminitialconds)
     domainliq, y0liq, pliq = ConstantTLiqFilmDomain(phase=liq_with_rxns, initialconds=liqinitialconds)
     inter, pinter = FragmentBasedReactiveFilmGrowthInterfaceConstantT(domainfilm, domainliq, interfacerxns)
+    update_oligomer_mw!(inter, domainliq, oligomer_Mw)
     react, y0, p = Reactor((domainfilm, domainliq), (y0film, y0liq), (0.0, tf), (inter,), (pfilm, pliq, pinter))
 
     num_variables = length(y0)

@@ -459,6 +459,9 @@ def plot_fragment_rops_1D(species_label):
         ]
         colors = [color for color, pattern in colors_patterns]
         patterns = [pattern for color, pattern in colors_patterns]
+        rop_rxncomments = [
+            rop_rxncomment.replace("[O][O]", "O2") for rop_rxncomment in rop_rxncomments
+        ]
         df = film_simulations[tray]
         mass = np.sum(
             [df.loc[0, f"mass_cell_{cell_ind}"] for cell_ind in cell_inds], axis=0
@@ -491,6 +494,9 @@ def plot_fragment_rops_1D(species_label):
             select_bar_color_pattern(comment) for comment in rop_rxncomments
         ]
         colors = [color for color, pattern in colors_patterns]
+        rop_rxncomments = [
+            rop_rxncomment.replace("[O][O]", "O2") for rop_rxncomment in rop_rxncomments
+        ]
         patterns = [pattern for color, pattern in colors_patterns]
         df = film_simulations[tray]
         mass = np.sum(
