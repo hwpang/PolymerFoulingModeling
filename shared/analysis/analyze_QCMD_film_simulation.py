@@ -64,7 +64,17 @@ T = 90.0 + 273.15
 tray = 1
 
 perturb_species = "O2"
-perturb_factor_list = ["0.0", "1e-3", "1e-2", "1e-1", "1e0"]
+perturb_factor_list = [
+    "0.0",
+    "1e-3",
+    "1e-2",
+    "1e-1",
+    "3e-1",
+    "1e0",
+    "3e0",
+    "1e1",
+    "1e2",
+]
 factor_num_list = [float(perturb_factor) for perturb_factor in perturb_factor_list]
 
 # experimental film growth rates
@@ -147,6 +157,8 @@ benzene_sat_conc = benzene_density / benzene_mw  # mol/m^3
 pure_O2_sat_conc = pure_O2_sat_molfrac * benzene_sat_conc  # mol/m^3
 air_O2_sat_conc = 0.21 * pure_O2_sat_conc  # mol/m^3
 air_O2_sat_conc /= 1000  # mol/L
+
+print(f"Air-saturated O2 conc (M): {air_O2_sat_conc}")
 
 xs = np.array(factor_num_list) * air_O2_sat_conc
 
@@ -355,7 +367,7 @@ for ind, perturb_factor in enumerate(perturb_factor_list):
         film_rops[perturb_factor], "mass"
     )
     df = film_simulations[perturb_factor]
-    mass = df.loc[len(df.index)-1, "mass"]
+    mass = df.loc[len(df.index) - 1, "mass"]
     normalized_rops = np.array(rops / mass)
     min_rop = min(min_rop, min(normalized_rops))
     max_rop = max(max_rop, max(normalized_rops))
@@ -395,7 +407,7 @@ def plot_film_rop(name, loss_only=False, production_only=False):
             production_only=production_only,
         )
         df = film_simulations[perturb_factor]
-        mass = df.loc[len(df.index)-1, "mass"]
+        mass = df.loc[len(df.index) - 1, "mass"]
         normalized_rops = np.array(rops.abs() / mass)
         min_rop = min(min_rop, min(normalized_rops))
         max_rop = max(max_rop, max(normalized_rops))
@@ -410,7 +422,7 @@ def plot_film_rop(name, loss_only=False, production_only=False):
 
     for ax in axs:
         ax.set_xlim([min_rop, max_rop])
-        
+
     if loss_only:
         label = "loss"
     elif production_only:

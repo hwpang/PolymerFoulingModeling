@@ -60,7 +60,17 @@ T = 90.0 + 273.15
 tray = 1
 
 perturb_species = "O2"
-perturb_factor_list = ["0.0", "1e-3", "1e-2", "1e-1", "1e0"]
+perturb_factor_list = [
+    "0.0",
+    "1e-3",
+    "1e-2",
+    "1e-1",
+    "3e-1",
+    "1e0",
+    "3e0",
+    "1e1",
+    "1e2",
+]
 factor_num_list = [float(perturb_factor) for perturb_factor in perturb_factor_list]
 
 print("Loading liquid simulation results...")
@@ -182,9 +192,9 @@ def plot_liquid_rop(name, labels, loss_only=False, production_only=False):
             continue
         min_rop = min(min_rop, min(normalized_rops))
         max_rop = max(max_rop, max(normalized_rops))
-        xs = np.arange(len(rop_sourcestrings))
-        axs[ind].barh(xs, normalized_rops, align="center")
-        axs[ind].set_yticks(xs)
+        ys = np.arange(len(rop_sourcestrings))
+        axs[ind].barh(ys, normalized_rops, align="center")
+        axs[ind].set_yticks(ys)
         axs[ind].set_yticklabels(rop_sourcestrings)
         x = xs[ind]
         axs[ind].set_ylabel(f"{x:.1e} M [O2]")
