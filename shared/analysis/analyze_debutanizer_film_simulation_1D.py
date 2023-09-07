@@ -196,6 +196,19 @@ for tray in trays:
             rate_of_production_path
         )
 
+simulation = film_simulations[trays[0]]
+species_names = [
+    name.replace("_cell_1", "")
+    for name in simulation.columns.values
+    if "_cell_1" in name
+]
+carbon_center_radical_names = [
+    name for name in species_names if "[C" in name or "[c" in name
+]
+oxygen_center_radical_names = [
+    name for name in species_names if "[O" in name or "[o" in name
+]
+
 print("Plotting rate of film growth at t0 and tf...")
 
 
@@ -334,111 +347,158 @@ fig.align_labels()
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_1D_film_rop_mass_t0_tf.pdf", bbox_inches="tight")
 
-# print("Plotting rate of film growth at tf near bulk liquid and tray surface...")
+print("Plotting rate of film growth contributed by different liquid-phase radicals...")
 
-# fig = plt.figure(figsize=(6, 14))
-# gs = fig.add_gridspec(nrows, ncols)
-# axs = []
+def get_film_rops_1D_by_spc(
+    film_rate_of_productions,
+    tray,
+    cell_inds,
+    rop_names,
+    involed_spc_names,
+    loss_only=False,
+    production_only=False,
+    N=3,
+):
+    if isinstance(rop_names, str):
+        rop_names = [rop_names]
 
-# min_rop = 1e10
-# max_rop = 0
-# for ind, tray in enumerate(selected_trays):
-#     ax = fig.add_subplot(gs[ind * 2, 0])
-#     axs.append(ax)
+    cell_ind = cell_inds[0]
+    df = film_rate_of_productions[tray, cell_ind]
+    name_inds = df["rop_spcname"].isin(rop_names)
+    rop_rxncomments = df.loc[name_inds, "rop_rxncomment"]
+    rop_rxnstrs = df.loc[name_inds, "rop_rxnstr"]
+    rops = df.loc[name_inds, "rop"]
 
-#     rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
-#         film_rate_of_productions, tray, [cell_inds[0]], "mass"
-#     )
-#     colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
-#     colors = [color for color, pattern in colors_patterns]
-#     patterns = [pattern for color, pattern in colors_patterns]
-#     df = film_simulations[tray]
-#     mass = np.sum(
-#         [
-#             df.loc[len(df.index) - 1, f"mass_cell_{cell_ind}"]
-#             for cell_ind in [cell_inds[0]]
-#         ],
-#         axis=0,
-#     )
-#     normalized_rops = np.array(rops / mass)
-#     min_rop = min(min_rop, min(normalized_rops))
-#     max_rop = max(max_rop, max(normalized_rops))
-#     xs = np.arange(len(rop_rxncomments))
-#     for bar_ind, x in enumerate(xs):
-#         ax.barh(
-#             [x],
-#             [normalized_rops[bar_ind]],
-#             align="center",
-#             color=colors[bar_ind],
-#             hatch=patterns[bar_ind],
-#         )
-#     ax.set_yticks(xs)
-#     ax.set_yticklabels(rop_rxncomments)
-#     ax.set_xscale("log")
-#     ax.invert_yaxis()
+    for cell_ind in cell_inds[1:]:
+        df = film_rate_of_productions[tray, cell_ind]
+        rops += df.loc[name_inds, "rop"]
 
-#     ax = fig.add_subplot(gs[ind * 2 + 1, 0])
-#     axs.append(ax)
+    if loss_only:
+        inds = rops < 0
+    elif production_only:
+        inds = rops > 0
+    else:
+        inds = rops != 0
 
-#     cell_ind = cell_inds[-1]
-#     rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
-#         film_rate_of_productions, tray, [cell_inds[0]], "mass"
-#     )
-#     colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
-#     colors = [color for color, pattern in colors_patterns]
-#     patterns = [pattern for color, pattern in colors_patterns]
-#     df = film_simulations[tray]
-#     mass = np.sum(
-#         [
-#             df.loc[len(df.index) - 1, f"mass_cell_{cell_ind}"]
-#             for cell_ind in [cell_inds[0]]
-#         ],
-#         axis=0,
-#     )
-#     normalized_rops = np.array(rops / mass)
-#     min_rop = min(min_rop, min(normalized_rops))
-#     max_rop = max(max_rop, max(normalized_rops))
-#     xs = np.arange(len(rop_rxncomments))
-#     for bar_ind, x in enumerate(xs):
-#         ax.barh(
-#             [x],
-#             [normalized_rops[bar_ind]],
-#             align="center",
-#             color=colors[bar_ind],
-#             hatch=patterns[bar_ind],
-#         )
-#     ax.set_yticks(xs)
-#     ax.set_yticklabels(rop_rxncomments)
-#     ax.set_xscale("log")
-#     ax.invert_yaxis()
+    rops = rops[inds]
+    rop_rxncomments = rop_rxncomments[inds]
+    rop_rxnstrs = rop_rxnstrs[inds]
 
-#     ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
-#     ax.set_ylabel(f"Tray {tray}\n(tray surface)      (bulk liquid)")
-#     ax.set_xticks([])
-#     ax.set_xticklabels([])
-#     ax.set_yticks([])
-#     ax.set_yticklabels([])
+    inds = rop_rxnstrs.str.contains("|".join(involed_spc_names))
 
-# print("min_rop: ", min_rop)
-# print("max_rop: ", max_rop)
+    rops = rops[inds]
+    rop_rxncomments = rop_rxncomments[inds]
+    rop_rxnstrs = rop_rxnstrs[inds]
 
-# for ax in axs:
-#     ax.set_xlim(min_rop, max_rop)
-#     if ax != axs[-1]:
-#         ax.set_xticks([])
-#         ax.set_xticklabels([])
+    sorted_inds = rops.abs().argsort()[::-1]
+    if len(sorted_inds) > N:
+        sorted_inds = sorted_inds[:N]
 
-# axs[-1].set_xlabel("Local rate of film growth (kg/(kg*s))")
-# axs[-1].legend(
-#     handles=handles, labels=labels, bbox_to_anchor=(1.00, -0.5), loc="upper right"
-# )
-# fig.align_labels()
-# fig.tight_layout()
-# fig.savefig(
-#     f"Figures/{model_name}_1D_film_rop_mass_bulk_liquid_tray_surface.pdf",
-#     bbox_inches="tight",
-# )
+    return (
+        rops.iloc[sorted_inds],
+        rop_rxncomments.iloc[sorted_inds],
+        rop_rxnstrs.iloc[sorted_inds],
+    )
 
+fig = plt.figure(figsize=(6, 14))
+gs = fig.add_gridspec(nrows, ncols)
+axs = []
+
+min_rop = 1e10
+max_rop = 0
+for ind, tray in enumerate(selected_trays):
+    ax = fig.add_subplot(gs[ind * 2, 0])
+    axs.append(ax)
+
+    rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D_by_spc(
+        film_rate_of_productions_t0, tray, cell_inds, "mass", carbon_center_radical_names,
+    )
+    rop_rxncomments = [
+        rop_rxncomment.replace("[O][O]", "O2") for rop_rxncomment in rop_rxncomments
+    ]
+    colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
+    colors = [color for color, pattern in colors_patterns]
+    patterns = [pattern for color, pattern in colors_patterns]
+    df = film_simulations[tray]
+    mass = np.sum(
+        [df.loc[0, f"mass_cell_{cell_ind}"] for cell_ind in cell_inds], axis=0
+    )
+    normalized_rops = np.array(rops / mass)
+    min_rop = min(min_rop, min(normalized_rops))
+    max_rop = max(max_rop, max(normalized_rops))
+    xs = np.arange(len(rop_rxncomments))
+    for bar_ind, x in enumerate(xs):
+        ax.barh(
+            [x],
+            [normalized_rops[bar_ind]],
+            align="center",
+            color=colors[bar_ind],
+            hatch=patterns[bar_ind],
+        )
+    ax.set_yticks(xs)
+    ax.set_yticklabels(rop_rxncomments)
+    ax.set_xscale("log")
+    ax.invert_yaxis()
+    ax.set_ylabel("($t_0$)")
+
+    ax = fig.add_subplot(gs[ind * 2 + 1, 0])
+    axs.append(ax)
+
+    rops, rop_rxncomments, rop_rxnstrs = get_film_rops_1D(
+        film_rate_of_productions, tray, cell_inds, "mass"
+    )
+    rop_rxncomments = [
+        rop_rxncomment.replace("[O][O]", "O2") for rop_rxncomment in rop_rxncomments
+    ]
+    colors_patterns = [select_bar_color_pattern(comment) for comment in rop_rxncomments]
+    colors = [color for color, pattern in colors_patterns]
+    patterns = [pattern for color, pattern in colors_patterns]
+    df = film_simulations[tray]
+    mass = np.sum(
+        [df.loc[len(df.index) - 1, f"mass_cell_{cell_ind}"] for cell_ind in cell_inds],
+        axis=0,
+    )
+    normalized_rops = np.array(rops / mass)
+    min_rop = min(min_rop, min(normalized_rops))
+    max_rop = max(max_rop, max(normalized_rops))
+    xs = np.arange(len(rop_rxncomments))
+    for bar_ind, x in enumerate(xs):
+        ax.barh(
+            [x],
+            [normalized_rops[bar_ind]],
+            align="center",
+            color=colors[bar_ind],
+            hatch=patterns[bar_ind],
+        )
+    ax.set_yticks(xs)
+    ax.set_yticklabels(rop_rxncomments)
+    ax.set_xscale("log")
+    ax.invert_yaxis()
+    ax.set_ylabel("($t_f$)")
+
+    ax = fig.add_subplot(gs[(ind * 2) : (ind * 2 + 2), :], frameon=False)
+    ax.set_ylabel(f"Tray {tray}", labelpad=20)
+    ax.set_xticks([])
+    ax.set_xticklabels([])
+    ax.set_yticks([])
+    ax.set_yticklabels([])
+
+print("min_rop: ", min_rop)
+print("max_rop: ", max_rop)
+
+for ax in axs:
+    ax.set_xlim(min_rop, max_rop)
+    if ax != axs[-1]:
+        ax.set_xticks([])
+        ax.set_xticklabels([])
+
+axs[-1].set_xlabel("Rate of film growth (kg/(kg*s))")
+axs[-1].legend(
+    handles=handles, labels=labels, bbox_to_anchor=(1.00, -0.5), loc="upper right"
+)
+fig.align_labels()
+fig.tight_layout()
+fig.savefig(f"Figures/{model_name}_1D_film_rop_mass_t0_tf.pdf", bbox_inches="tight")
 
 def plot_fragment_rops_1D(species_label):
     fig = plt.figure(figsize=(6, 14))
@@ -561,19 +621,6 @@ print("Plotting rate of loss for KR...")
 
 species_label = "KR"
 plot_fragment_rops_1D(species_label)
-
-simulation = film_simulations[trays[0]]
-species_names = [
-    name.replace("_cell_1", "")
-    for name in simulation.columns.values
-    if "_cell_1" in name
-]
-carbon_center_radical_names = [
-    name for name in species_names if "[C" in name or "[c" in name
-]
-oxygen_center_radical_names = [
-    name for name in species_names if "[O" in name or "[o" in name
-]
 
 # print("Plotting rate of loss for carbon center radicals...")
 
