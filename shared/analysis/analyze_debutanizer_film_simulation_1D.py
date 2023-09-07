@@ -1,4 +1,5 @@
 import os
+import re
 import argparse
 import numpy as np
 import pandas as pd
@@ -384,7 +385,7 @@ def get_film_rops_1D_by_spc(
     rop_rxncomments = rop_rxncomments[inds]
     rop_rxnstrs = rop_rxnstrs[inds]
 
-    inds = rop_rxnstrs.str.contains("|".join(involed_spc_names))
+    inds = rop_rxnstrs.str.contains('|'.join(map(re.escape, involed_spc_names)))
 
     rops = rops[inds]
     rop_rxncomments = rop_rxncomments[inds]
