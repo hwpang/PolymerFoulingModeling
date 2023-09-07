@@ -46,25 +46,22 @@ plt.legend()
 plt.tight_layout()
 plt.savefig("Figures/reaction_rates_CPD.+CDB_CPDOO.+CDB.pdf", bbox_inches="tight")
 
-AR_BD_RAdds = []
+AR_CPD_RAdds = []
 AR_CPD_HAbs = []
-AR_O2_RRecomb = []
-PR_BD_RAdds = []
+PR_CPD_RAdds = []
 PR_CPD_HAbs = []
 
 for rxn in filmrxns:
     if len(rxn.reactants) == 2 and len(rxn.products) == 1:
         spcs = rxn.reactants
         if any(spc.label == "AR" for spc in spcs):
-            if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
-                if any(spc.label == "C=C[CH]CCC(=C)C" for spc in rxn.products):
-                    AR_BD_RAdds.append(rxn)
-            elif any(spc.smiles == "[O][O]" for spc in spcs):
-                AR_O2_RRecomb.append(rxn)
+            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
+                if any(spc.smiles == "C=C(C)CC1C=C[CH]C1" for spc in rxn.products):
+                    AR_CPD_RAdds.append(rxn)
         elif any(spc.label == "PR" for spc in spcs):
-            if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
-                if any(spc.label == "C=C[CH]COOCC(C)C" for spc in rxn.products):
-                    PR_BD_RAdds.append(rxn)
+            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
+                if any(spc.smiles == "CC(C)COOC1[CH]C=CC1" for spc in rxn.products):
+                    PR_CPD_RAdds.append(rxn)
     if len(rxn.reactants) == 2 and len(rxn.products) == 2:
         spcs = rxn.reactants + rxn.products
         if any(spc.label == "AR" for spc in spcs):
@@ -76,9 +73,9 @@ for rxn in filmrxns:
 
 plt.figure()
 
-for rxn in AR_BD_RAdds:
+for rxn in AR_CPD_RAdds:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="AR + BD radical addition")
+    plt.plot(1000 / Ts, ks, label="AR + CPD radical addition")
     print(rxn)
     for spc in rxn.reactants + rxn.products:
         print(spc.smiles)
@@ -92,17 +89,9 @@ for rxn in AR_CPD_HAbs:
         print(spc.smiles)
     print(rxn.kinetics)
 
-for rxn in AR_O2_RRecomb:
+for rxn in PR_CPD_RAdds:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="AR + $\mathrm{O}_2$ => PR")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
-
-for rxn in PR_BD_RAdds:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="PR + BD radical addition")
+    plt.plot(1000 / Ts, ks, label="PR + CPD radical addition")
     print(rxn)
     for spc in rxn.reactants + rxn.products:
         print(spc.smiles)
@@ -111,6 +100,46 @@ for rxn in PR_BD_RAdds:
 for rxn in PR_CPD_HAbs:
     ks = [rxn.get_rate_coefficient(T) for T in Ts]
     plt.plot(1000 / Ts, ks, label="PR + CPD hydrogen abstraction")
+    print(rxn)
+    for spc in rxn.reactants + rxn.products:
+        print(spc.smiles)
+    print(rxn.kinetics)
+
+plt.yscale("log")
+plt.xlabel("1000 / T (1000/K)")
+plt.ylabel("k ($\mathrm{m}^3$/(mol*s))")
+plt.legend()
+plt.tight_layout()
+plt.savefig("Figures/reaction_rates_AR+CPD_PR+CPD.pdf", bbox_inches="tight")
+
+AR_BD_RAdds = []
+PR_BD_RAdds = []
+
+for rxn in filmrxns:
+    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
+        spcs = rxn.reactants
+        if any(spc.label == "AR" for spc in spcs):
+            if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
+                if any(spc.label == "C=C[CH]CCC(=C)C" for spc in rxn.products):
+                    AR_BD_RAdds.append(rxn)
+        elif any(spc.label == "PR" for spc in spcs):
+            if any(spc.label == "1,3-BUTADIENE(L)" for spc in spcs):
+                if any(spc.label == "C=C[CH]COOCC(C)C" for spc in rxn.products):
+                    PR_BD_RAdds.append(rxn)
+
+plt.figure()
+
+for rxn in AR_BD_RAdds:
+    ks = [rxn.get_rate_coefficient(T) for T in Ts]
+    plt.plot(1000 / Ts, ks, label="AR + BD radical addition")
+    print(rxn)
+    for spc in rxn.reactants + rxn.products:
+        print(spc.smiles)
+    print(rxn.kinetics)
+
+for rxn in PR_BD_RAdds:
+    ks = [rxn.get_rate_coefficient(T) for T in Ts]
+    plt.plot(1000 / Ts, ks, label="PR + BD radical addition")
     print(rxn)
     for spc in rxn.reactants + rxn.products:
         print(spc.smiles)
