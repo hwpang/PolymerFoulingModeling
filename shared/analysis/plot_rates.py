@@ -7,111 +7,20 @@ chemkin_path = "/home/gridsan/hwpang/Software/PolymerFoulingModeling/debutanizer
 species_dict_path = "/home/gridsan/hwpang/Software/PolymerFoulingModeling/debutanizer_models/trace_oxygen_perturbed/film_mechanism/species_dictionary_film.txt"
 filmspcs, filmrxns = load_chemkin_file(chemkin_path, species_dict_path)
 
+def get_rxn_smiles(rxn):
+    return "+".join([spc.smiles for spc in rxn.reactants]) + "->" + "+".join([spc.smiles for spc in rxn.products])
+
+def plot_rxn_rates(rxns, Ts, ax, label, linestyle="-"):
+    for rxn in rxns:
+        ks = [rxn.get_rate_coefficient(T) for T in Ts]
+        rxn_smiles = get_rxn_smiles(rxn)
+        ax.plot(1000 / Ts, ks, label=f"{label}", linestyle=linestyle)
+        print(rxn.kinetics)
 Ts = np.linspace(300, 400, 50)
 
-CPD_radical_CDB_RAdds = []
-CPDOO_radical_CDB_RAdds = []
+fig, axs = plt.subplots(2, 3, figsize=(12, 7), sharex=True, sharey=True)
 
-for rxn in filmrxns:
-    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
-        spcs = rxn.reactants
-        if any(spc.label == "CDB" for spc in spcs):
-            if any(spc.label == "[CH]1C=CC=C1(L)" for spc in spcs):
-                CPD_radical_CDB_RAdds.append(rxn)
-            elif any(spc.label == "[O]OC1C=CC=C1(L)" for spc in spcs):
-                CPDOO_radical_CDB_RAdds.append(rxn)
-
-plt.figure()
-
-for rxn in CPD_radical_CDB_RAdds:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="cyclopentadienyl + CDB radical addition")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
-
-for rxn in CPDOO_radical_CDB_RAdds:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="cyclopentadienyl peroxyl + CDB radical addition")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
-
-plt.yscale("log")
-plt.xlabel("1000 / T (1000/K)")
-plt.ylabel("k ($\mathrm{m}^3$/(mol*s))")
-plt.legend()
-plt.tight_layout()
-plt.savefig("Figures/reaction_rates_CPD.+CDB_CPDOO.+CDB.pdf", bbox_inches="tight")
-
-AR_CPD_RAdds = []
-AR_CPD_HAbs = []
-PR_CPD_RAdds = []
-PR_CPD_HAbs = []
-
-for rxn in filmrxns:
-    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
-        spcs = rxn.reactants
-        if any(spc.label == "AR" for spc in spcs):
-            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
-                if any(spc.smiles == "C=C(C)CC1C=C[CH]C1" for spc in rxn.products):
-                    AR_CPD_RAdds.append(rxn)
-        elif any(spc.label == "PR" for spc in spcs):
-            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
-                if any(spc.smiles == "CC(C)COOC1[CH]C=CC1" for spc in rxn.products):
-                    PR_CPD_RAdds.append(rxn)
-    if len(rxn.reactants) == 2 and len(rxn.products) == 2:
-        spcs = rxn.reactants + rxn.products
-        if any(spc.label == "AR" for spc in spcs):
-            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
-                AR_CPD_HAbs.append(rxn)
-        elif any(spc.label == "PR" for spc in spcs):
-            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
-                PR_CPD_HAbs.append(rxn)
-
-plt.figure()
-
-for rxn in AR_CPD_RAdds:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="AR + CPD radical addition")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
-
-for rxn in AR_CPD_HAbs:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="AR + CPD hydrogen abstraction")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
-
-for rxn in PR_CPD_RAdds:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="PR + CPD radical addition")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
-
-for rxn in PR_CPD_HAbs:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="PR + CPD hydrogen abstraction")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
-
-plt.yscale("log")
-plt.xlabel("1000 / T (1000/K)")
-plt.ylabel("k ($\mathrm{m}^3$/(mol*s))")
-plt.legend()
-plt.tight_layout()
-plt.savefig("Figures/reaction_rates_AR+CPD_PR+CPD.pdf", bbox_inches="tight")
-
+print("Plotting AR/PR + BD radical addition rates...")
 AR_BD_RAdds = []
 PR_BD_RAdds = []
 
@@ -127,27 +36,112 @@ for rxn in filmrxns:
                 if any(spc.label == "C=C[CH]COOCC(C)C" for spc in rxn.products):
                     PR_BD_RAdds.append(rxn)
 
-plt.figure()
+ax = axs[0, 0]
+ax.set_title("(a)", loc="left")
+plot_rxn_rates(AR_BD_RAdds, Ts, ax, "AR + BD addition")
+plot_rxn_rates(PR_BD_RAdds, Ts, ax, "PR + BD addition", linestyle="--")
 
-for rxn in AR_BD_RAdds:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="AR + BD radical addition")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
+ax.set_yscale("log")
+ax.legend()
 
-for rxn in PR_BD_RAdds:
-    ks = [rxn.get_rate_coefficient(T) for T in Ts]
-    plt.plot(1000 / Ts, ks, label="PR + BD radical addition")
-    print(rxn)
-    for spc in rxn.reactants + rxn.products:
-        print(spc.smiles)
-    print(rxn.kinetics)
+print("Plotting AR/PR + CPD radical addition rates...")
+AR_CPD_RAdds = []
+PR_CPD_RAdds = []
 
-plt.yscale("log")
-plt.xlabel("1000 / T (1000/K)")
-plt.ylabel("k ($\mathrm{m}^3$/(mol*s))")
-plt.legend()
-plt.tight_layout()
-plt.savefig("Figures/reaction_rates_AR+BD_PR+BD.pdf", bbox_inches="tight")
+for rxn in filmrxns:
+    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
+        spcs = rxn.reactants
+        if any(spc.label == "AR" for spc in spcs):
+            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
+                if any(spc.smiles == "C=C(C)CC1C=C[CH]C1" for spc in rxn.products):
+                    AR_CPD_RAdds.append(rxn)
+        elif any(spc.label == "PR" for spc in spcs):
+            if any(spc.label == "CYCLOPENTADIENE(L)" for spc in spcs):
+                if any(spc.smiles == "CC(C)COOC1[CH]C=CC1" for spc in rxn.products):
+                    PR_CPD_RAdds.append(rxn)
+
+ax = axs[0, 1]
+ax.set_title("(b)", loc="left")
+plot_rxn_rates(AR_CPD_RAdds, Ts, ax, "AR + CPD addition")
+plot_rxn_rates(PR_CPD_RAdds, Ts, ax, "PR + CPD addition", linestyle="--")
+
+ax.set_yscale("log")
+ax.legend()
+
+print("Plotting cyclopentenyl RC./RCOO. + CDB radical addition rates...")
+cyclopentenyl_radical_CDB_RAdds = []
+cyclopentenylperoxyl_radical_CDB_RAdds = []
+
+for rxn in filmrxns:
+    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
+        spcs = rxn.reactants
+        if any(spc.label == "CDB" for spc in spcs):
+            if any(spc.label == "[CH]1C=CCC1(L)" for spc in spcs):
+                cyclopentenyl_radical_CDB_RAdds.append(rxn)
+            elif any(spc.label == "[O]OC1C=CCC1(L)" for spc in spcs):
+                cyclopentenylperoxyl_radical_CDB_RAdds.append(rxn)
+
+ax = axs[0, 2]
+ax.axis("off")
+
+ax = axs[1, 0]
+ax.set_title("(c)", loc="left")
+plot_rxn_rates(cyclopentenyl_radical_CDB_RAdds, Ts, ax, "cyclopentenyl + CDB addition")
+plot_rxn_rates(cyclopentenylperoxyl_radical_CDB_RAdds, Ts, ax, "cyclopentenylperoxyl + CDB addition", linestyle="--")
+
+ax.set_yscale("log")
+ax.legend(bbox_to_anchor=(0.0, -0.2), loc="upper left")
+
+print("Plotting butenyl1 RC./RCOO. + CDB radical addition rates...")
+butenyl1_radical_CDB_RAdds = []
+butenyl1peroxyl_radical_CDB_RAdds = []
+
+for rxn in filmrxns:
+    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
+        spcs = rxn.reactants
+        if any(spc.label == "CDB" for spc in spcs):
+            if any(spc.label == "C=C[CH]C(L)" for spc in spcs):
+                if any(spc.label == "C=CC(C)C([CH]CC)CC" for spc in rxn.products):
+                    butenyl1_radical_CDB_RAdds.append(rxn)
+            elif any(spc.label == "C=CC(C)O[O](L)" for spc in spcs):
+                butenyl1peroxyl_radical_CDB_RAdds.append(rxn)
+
+ax = axs[1, 1]
+ax.set_title("(d)", loc="left")
+plot_rxn_rates(butenyl1_radical_CDB_RAdds, Ts, ax, "1-butenyl + CDB addition")
+plot_rxn_rates(butenyl1peroxyl_radical_CDB_RAdds, Ts, ax, "1-butenylperoxyl + CDB addition", linestyle="--")
+
+ax.set_yscale("log")
+ax.legend(bbox_to_anchor=(0.0, -0.2), loc="upper left")
+
+print("Plotting butenyl2 RC./RCOO. + CDB radical addition rates...")
+butenyl2_radical_CDB_RAdds = []
+butenyl2peroxyl_radical_CDB_RAdds = []
+
+for rxn in filmrxns:
+    if len(rxn.reactants) == 2 and len(rxn.products) == 1:
+        spcs = rxn.reactants
+        if any(spc.label == "CDB" for spc in spcs):
+            if any(spc.label == "C=C[CH]C(L)" for spc in spcs):
+                if any(spc.label == "CC=CCC([CH]CC)CC" for spc in rxn.products):
+                    butenyl2_radical_CDB_RAdds.append(rxn)
+            elif any(spc.label == "CC=CCO[O](L)" for spc in spcs):
+                butenyl2peroxyl_radical_CDB_RAdds.append(rxn)
+
+ax = axs[1, 2]
+ax.set_title("(e)", loc="left")
+plot_rxn_rates(butenyl2_radical_CDB_RAdds, Ts, ax, "2-butenyl + CDB addition")
+plot_rxn_rates(butenyl2peroxyl_radical_CDB_RAdds, Ts, ax, "2-butenylperoxyl + CDB addition", linestyle="--")
+
+ax.set_yscale("log")
+ax.legend(bbox_to_anchor=(0.0, -0.2), loc="upper left")
+
+for ax in axs[:, 0]:
+    ax.set_ylabel("k ($\mathrm{m}^3$/(mol*s))")
+for ax in axs[-1, :]:
+    ax.set_xlabel("1000 / T (1000/K)")
+
+fig.subplots_adjust(wspace=0, hspace=0)
+fig.align_labels()
+fig.tight_layout()
+fig.savefig("Figures/reaction_rates_AR+BD_PR+BD_RC.+CDB_RCOO.+CDB.pdf", bbox_inches="tight")
