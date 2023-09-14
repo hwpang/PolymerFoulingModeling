@@ -38,8 +38,8 @@ for rxn in filmrxns:
 
 ax = axs[0, 0]
 ax.set_title("(a)", loc="left")
-plot_rxn_rates(AR_BD_RAdds, Ts, ax, "AR + BD addition")
-plot_rxn_rates(PR_BD_RAdds, Ts, ax, "PR + BD addition", linestyle="--")
+plot_rxn_rates(AR_BD_RAdds, Ts, ax, "AR + BD")
+plot_rxn_rates(PR_BD_RAdds, Ts, ax, "PR + BD", linestyle="--")
 
 ax.set_yscale("log")
 ax.legend()
@@ -62,8 +62,8 @@ for rxn in filmrxns:
 
 ax = axs[0, 1]
 ax.set_title("(b)", loc="left")
-plot_rxn_rates(AR_CPD_RAdds, Ts, ax, "AR + CPD addition")
-plot_rxn_rates(PR_CPD_RAdds, Ts, ax, "PR + CPD addition", linestyle="--")
+plot_rxn_rates(AR_CPD_RAdds, Ts, ax, "AR + CPD")
+plot_rxn_rates(PR_CPD_RAdds, Ts, ax, "PR + CPD", linestyle="--")
 
 ax.set_yscale("log")
 ax.legend()
@@ -86,8 +86,8 @@ ax.axis("off")
 
 ax = axs[1, 0]
 ax.set_title("(c)", loc="left")
-plot_rxn_rates(cyclopentenyl_radical_CDB_RAdds, Ts, ax, "cyclopentenyl + CDB addition")
-plot_rxn_rates(cyclopentenylperoxyl_radical_CDB_RAdds, Ts, ax, "cyclopentenylperoxyl + CDB addition", linestyle="--")
+plot_rxn_rates(cyclopentenyl_radical_CDB_RAdds, Ts, ax, "1-cyclopenten-3-yl + CDB")
+plot_rxn_rates(cyclopentenylperoxyl_radical_CDB_RAdds, Ts, ax, "1-cyclopenten-3-ylperoxyl + CDB", linestyle="--")
 
 ax.set_yscale("log")
 ax.legend(bbox_to_anchor=(0.0, -0.2), loc="upper left")
@@ -108,8 +108,8 @@ for rxn in filmrxns:
 
 ax = axs[1, 1]
 ax.set_title("(d)", loc="left")
-plot_rxn_rates(butenyl1_radical_CDB_RAdds, Ts, ax, "1-butenyl + CDB addition")
-plot_rxn_rates(butenyl1peroxyl_radical_CDB_RAdds, Ts, ax, "1-butenylperoxyl + CDB addition", linestyle="--")
+plot_rxn_rates(butenyl1_radical_CDB_RAdds, Ts, ax, "1-buten-3-yl + CDB")
+plot_rxn_rates(butenyl1peroxyl_radical_CDB_RAdds, Ts, ax, "1-buten-3-ylperoxyl + CDB", linestyle="--")
 
 ax.set_yscale("log")
 ax.legend(bbox_to_anchor=(0.0, -0.2), loc="upper left")
@@ -130,8 +130,8 @@ for rxn in filmrxns:
 
 ax = axs[1, 2]
 ax.set_title("(e)", loc="left")
-plot_rxn_rates(butenyl2_radical_CDB_RAdds, Ts, ax, "2-butenyl + CDB addition")
-plot_rxn_rates(butenyl2peroxyl_radical_CDB_RAdds, Ts, ax, "2-butenylperoxyl + CDB addition", linestyle="--")
+plot_rxn_rates(butenyl2_radical_CDB_RAdds, Ts, ax, "2-buten-3-yl + CDB")
+plot_rxn_rates(butenyl2peroxyl_radical_CDB_RAdds, Ts, ax, "2-buten-3-ylperoxyl + CDB", linestyle="--")
 
 ax.set_yscale("log")
 ax.legend(bbox_to_anchor=(0.0, -0.2), loc="upper left")

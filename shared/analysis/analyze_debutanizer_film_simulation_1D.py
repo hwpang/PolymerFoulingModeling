@@ -169,7 +169,9 @@ for ind, tray in enumerate(selected_trays):
     ax.set_xlabel("Time (week)")
     ax.set_ylim([bottom_bound, top_bound])
 
-axs[0].legend()
+handles, labels = axs[0].get_legend_handles_labels()
+axs[1].legend(handles, labels, bbox_to_anchor=(1.00, 1.00), loc="upper left")
+
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_1D_film_thickness_vs_t.pdf", bbox_inches="tight")
 
@@ -375,6 +377,7 @@ def get_film_rops_1D_by_spc(
 
     for cell_ind in cell_inds[1:]:
         df = film_rate_of_productions[tray, cell_ind]
+        name_inds = df["rop_spcname"].isin(rop_names)
         rops += df.loc[name_inds, "rop"]
 
     if loss_only:
@@ -410,7 +413,7 @@ def plot_mass_rops_1D_by_species(spc_names, save_name, xlim=None):
     nrows = len(selected_trays)
     ncols = 1
 
-    fig = plt.figure(figsize=(6, 7))
+    fig = plt.figure(figsize=(10, 7))
     gs = fig.add_gridspec(nrows, ncols)
     axs = []
 
@@ -432,7 +435,7 @@ def plot_mass_rops_1D_by_species(spc_names, save_name, xlim=None):
         patterns = [pattern for color, pattern in colors_patterns]
         df = film_simulations[tray]
         spc_mols = np.sum(
-            [df.loc[len(df.index) - 1, f"{spc_name}_cell_{cell_ind}"] for cell_ind in cell_inds for spc_name in spc_names], axis=0
+            [df.loc[0, f"{spc_name}_cell_{cell_ind}"] for cell_ind in cell_inds for spc_name in spc_names], axis=0
         )
         normalized_rops = np.array(rops / spc_mols)
         min_rop = min(min_rop, min(normalized_rops))
@@ -450,7 +453,7 @@ def plot_mass_rops_1D_by_species(spc_names, save_name, xlim=None):
         ax.set_yticklabels(rop_rxncomments)
         ax.set_xscale("log")
         ax.invert_yaxis()
-        ax.set_ylabel(f"Tray {tray} ($t_f$)")
+        ax.set_ylabel(f"Tray {tray}")
 
     print("min_rop: ", min_rop)
     print("max_rop: ", max_rop)
@@ -471,12 +474,12 @@ def plot_mass_rops_1D_by_species(spc_names, save_name, xlim=None):
     )
     fig.align_labels()
     fig.tight_layout()
-    fig.savefig(f"Figures/{model_name}_1D_film_rop_mass_by_{save_name}_t0_tf.pdf", bbox_inches="tight")
+    fig.savefig(f"Figures/{model_name}_1D_film_rop_mass_by_{save_name}_t0.pdf", bbox_inches="tight")
 
-plot_mass_rops_1D_by_species(carbon_center_radical_names, "RC.", xlim=[1e-1, 1e5])
-plot_mass_rops_1D_by_species(oxygen_center_radical_names, "ROO.", xlim=[1e-1, 1e5])
-plot_mass_rops_1D_by_species(["AR"], "AR")
-plot_mass_rops_1D_by_species(["PR"], "PR")
+plot_mass_rops_1D_by_species(carbon_center_radical_names, "RC.", xlim=[1e-1, 1e4])
+plot_mass_rops_1D_by_species(oxygen_center_radical_names, "ROO.", xlim=[1e-1, 1e4])
+plot_mass_rops_1D_by_species(["AR"], "AR", xlim=[1e-1, 1e4])
+plot_mass_rops_1D_by_species(["PR"], "PR", xlim=[1e-1, 1e4])
 
 def plot_fragment_rops_1D(species_label):
     fig = plt.figure(figsize=(6, 14))
