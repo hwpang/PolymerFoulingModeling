@@ -476,10 +476,10 @@ def plot_mass_rops_1D_by_species(spc_names, save_name, xlim=None):
     fig.tight_layout()
     fig.savefig(f"Figures/{model_name}_1D_film_rop_mass_by_{save_name}_t0.pdf", bbox_inches="tight")
 
-plot_mass_rops_1D_by_species(carbon_center_radical_names, "RC.", xlim=[1e-1, 1e4])
-plot_mass_rops_1D_by_species(oxygen_center_radical_names, "ROO.", xlim=[1e-1, 1e4])
-plot_mass_rops_1D_by_species(["AR"], "AR", xlim=[1e-1, 1e4])
-plot_mass_rops_1D_by_species(["PR"], "PR", xlim=[1e-1, 1e4])
+plot_mass_rops_1D_by_species(carbon_center_radical_names, "RC.", xlim=[1e-2, 1e3])
+plot_mass_rops_1D_by_species(oxygen_center_radical_names, "ROO.", xlim=[1e-2, 1e3])
+plot_mass_rops_1D_by_species(["AR"], "AR", xlim=[1e-2, 1e3])
+plot_mass_rops_1D_by_species(["PR"], "PR", xlim=[1e-2, 1e3])
 
 def plot_fragment_rops_1D(species_label):
     fig = plt.figure(figsize=(6, 14))

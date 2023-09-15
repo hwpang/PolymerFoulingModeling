@@ -67,6 +67,7 @@ def get_film_rops_1D(
     for cell_ind in cell_inds[1:]:
         df = film_rate_of_productions[tray, cell_ind]
         df.set_index(["rop_rxnstr", "rop_spcname"], inplace=True, drop=False)
+        name_inds = df["rop_spcname"].isin(rop_names)
         rops += df.loc[name_inds, "rop"]
 
     if loss_only:

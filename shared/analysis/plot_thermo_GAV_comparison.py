@@ -47,7 +47,6 @@ thermo_db.load(
 
 QM_spc_smiles_set = set()
 QM_spcs = []
-smis = []
 
 for library_label, library in thermo_db.libraries.items():
     print(library_label, len(library.entries))
@@ -58,13 +57,8 @@ for library_label, library in thermo_db.libraries.items():
         spc.generate_resonance_structures()
         spc.thermo = entry.data
         smi = spc.molecule[0].to_smiles()
-        if model_name == "basecase_debutanizer_model":
+        if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]:
             if "N" in smi or "n" in smi:
-                continue
-        elif model_name == "trace_oxygen_perturbed_debutanizer_model":
-            if "N" in smi or "n" in smi:
-                continue
-            if "O" not in smi and "o" not in smi:
                 continue
         else:
             raise ValueError("Unknown model name.")
@@ -72,13 +66,8 @@ for library_label, library in thermo_db.libraries.items():
         if smi not in QM_spc_smiles_set:
             QM_spc_smiles_set.add(smi)
             QM_spcs.append(spc)
-            if library_label != "thermo_combined_new":
-                smis.append(smi)
             count += 1
     print(count)
-
-print(smis)
-print(len(smis))
 
 # esitmate thermo with GAV
 GAV_spcs = []
@@ -130,7 +119,7 @@ max_carbon_num = max(H298_diff_by_carbon_num.keys())
 min_oxygen_num = min(H298_diff_by_oxygen_num.keys())
 max_oxygen_num = max(H298_diff_by_oxygen_num.keys())
 
-if model_name == "basecase_debutanizer_model":
+if model_name in ["basecase_debutanizer_model", "trace_oxygen_perturbed_debutanizer_model"]:
     fig, axes = plt.subplots(1, 2, figsize=(8, 3))
     ax = axes[0]
     ax.hist(QM_H298 - GAV_H298, edgecolor="black", bins=50)
@@ -193,51 +182,6 @@ if model_name == "basecase_debutanizer_model":
 
     fig.tight_layout()
     fig.savefig("Figures/QM_GAV_comparison_by_carbon_and_oxygen_num.pdf")
-
-elif model_name == "trace_oxygen_perturbed_debutanizer_model":
-    fig, axes = plt.subplots(2, 2, figsize=(8, 6))
-
-    ax = axes[0, 0]
-    ax.hist(QM_H298 - GAV_H298, edgecolor="black", bins=50)
-    ax.set_title("(a) $\Delta_\mathrm{f}H^o$(298 K)", loc="left")
-    ax.set_xlabel("QM - GAV (kcal/mol)")
-    ax.set_ylabel("Count")
-
-    ax = axes[0, 1]
-    ax.hist(QM_S298 - GAV_S298, edgecolor="black", bins=50)
-    ax.set_title("(b) $\Delta_\mathrm{f}S^o$(298 K)", loc="left")
-    ax.set_xlabel("QM - GAV (cal/mol/K)")
-    ax.set_ylabel("Count")
-
-    ax = axes[1, 0]
-    ax.violinplot(
-        list(H298_diff_by_oxygen_num.values()),
-        positions=list(H298_diff_by_oxygen_num.keys()),
-        showmeans=True,
-    )
-    ax.plot([min_oxygen_num - 0.5, max_oxygen_num + 0.5], [0, 0], "--", color="gray")
-    ax.set_xticks(range(min_oxygen_num, max_oxygen_num + 1))
-    ax.set_xticklabels(range(min_oxygen_num, max_oxygen_num + 1))
-    ax.set_title("(a) grouped by number of oxygen atoms", loc="left")
-    ax.set_ylabel("QM - GAV (kcal/mol)")
-    ax.set_xlabel("Number of oxygen atoms")
-
-    ax = axes[1, 1]
-    ax.violinplot(
-        list(S298_diff_by_oxygen_num.values()),
-        positions=list(S298_diff_by_oxygen_num.keys()),
-        showmeans=True,
-    )
-    ax.plot([min_oxygen_num - 0.5, max_oxygen_num + 0.5], [0, 0], "--", color="gray")
-    ax.set_xticks(range(min_oxygen_num, max_oxygen_num + 1))
-    ax.set_xticklabels(range(min_oxygen_num, max_oxygen_num + 1))
-    ax.set_title("(b) grouped by number of oxygen atoms", loc="left")
-    ax.set_ylabel("QM - GAV (cal/mol/K)")
-    ax.set_xlabel("Number of oxygen atoms")
-
-    fig.align_labels()
-    fig.tight_layout()
-    fig.savefig("Figures/QM_GAV_comparison.pdf", bbox_inches="tight")
 
 else:
     raise ValueError("Unknown model name.")
