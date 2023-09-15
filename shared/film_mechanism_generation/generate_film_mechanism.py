@@ -61,7 +61,7 @@ def parse_arguments():
     parser.add_argument(
         "--save_directory",
         type=str,
-        default="./film_mechanism",
+        default="film_mechanism",
         help="The directory to save the generated film phase mechanism.",
     )
 
@@ -80,7 +80,14 @@ def parse_arguments():
 start = time.time()
 
 print("Parsing arguments...")
-chemkin_path, species_dict_path, n_jobs, model_name, debug, save_directory = parse_arguments()
+(
+    chemkin_path,
+    species_dict_path,
+    n_jobs,
+    model_name,
+    debug,
+    save_directory,
+) = parse_arguments()
 
 print(f"Chemkin path: {chemkin_path}")
 print(f"Species dict path: {species_dict_path}")
@@ -90,7 +97,10 @@ print(f"Debug mode: {debug}")
 
 project_path = os.path.dirname(chemkin_path)
 
-if model_name == "basecase_debutanizer_model":
+if model_name in [
+    "basecase_debutanizer_model",
+    "trace_oxygen_perturbed_debutanizer_model",
+]:
     initial_monomer_labels = [
         "N-BUTANE",
         "2-BUTENE",
@@ -101,7 +111,10 @@ if model_name == "basecase_debutanizer_model":
         "TOLUENE",
         "STYRENE",
     ]
-    include_oxygen = False
+    if model_name == "trace_oxygen_perturbed_debutanizer_model":
+        include_oxygen = True
+    else:
+        include_oxygen = False
 elif model_name == "QCMD_cell_model":
     initial_monomer_labels = [
         "5-methylcyclohexadiene",
@@ -153,6 +166,7 @@ diffusion_limiter.enable(solvent_data, rmg.database.solvation)
 
 print("Labeling reaction families...")
 
+
 def get_reaction_family(rxn):
     if rxn.family in rmg.database.kinetics.families:
         return rxn.family
@@ -165,6 +179,7 @@ def get_reaction_family(rxn):
             return rxns[0].family
         else:
             return rxn.family
+
 
 families = Parallel(n_jobs=n_jobs, verbose=5, backend="multiprocessing")(
     delayed(get_reaction_family)(rxn) for rxn in liqrxns
@@ -273,6 +288,7 @@ if include_oxygen:
     spc = Species().from_smiles("CO[O]")
     assert spc.molecule[0].is_subgraph_isomorphic(group_dict["COO."])
 
+
 def calculate_subgraph_isomorphisms(mol, group):
     if group == "allylic_CH":
         sssr = mol.get_smallest_set_of_smallest_rings()
@@ -305,7 +321,9 @@ def calculate_subgraph_isomorphisms(mol, group):
     elif group == "conjugated_diene":
         return len(mol.find_subgraph_isomorphisms(group_dict["conjugated_diene"])) // 2
     elif group == "carbon_double_bond":
-        return len(mol.find_subgraph_isomorphisms(group_dict["carbon_double_bond"])) // 2
+        return (
+            len(mol.find_subgraph_isomorphisms(group_dict["carbon_double_bond"])) // 2
+        )
     elif group == "COO.":
         return len(mol.find_subgraph_isomorphisms(group_dict["COO."]))
     elif group == "COOC":
@@ -380,14 +398,11 @@ for spc in fragment_species.values():
 
 def generate_liq_film_reactions(spc):
     liq_film_reactions = []
-    if spc.molecule[0].multiplicity == 3:
-        return liq_film_reactions
-    
+
     if (
         calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0
         and not spc.molecule[0].is_radical()
     ):
-
         liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
             reactants=[fragment_species["CDB"], spc],
             only_families=["Diels_alder_addition"],
@@ -401,23 +416,32 @@ def generate_liq_film_reactions(spc):
             only_families=["R_Addition_MultipleBond"],
         )
         if include_oxygen:
-            liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
-                reactants=[fragment_species["PR"], spc],
-                only_families=["R_Addition_MultipleBond"],
+            liq_film_reactions += (
+                rmg.database.kinetics.generate_reactions_from_families(
+                    reactants=[fragment_species["PR"], spc],
+                    only_families=["R_Addition_MultipleBond"],
+                )
             )
-            liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
-                reactants=[fragment_species["OR"], spc],
-                only_families=["R_Addition_MultipleBond"],
+            liq_film_reactions += (
+                rmg.database.kinetics.generate_reactions_from_families(
+                    reactants=[fragment_species["OR"], spc],
+                    only_families=["R_Addition_MultipleBond"],
+                )
             )
-    
-    if calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0 and not spc.molecule[0].is_radical():
-        liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(reactants=[fragment_species["CD"], spc], only_families=["Diels_alder_addition"])
+
+    if (
+        calculate_subgraph_isomorphisms(spc.molecule[0], "conjugated_diene") > 0
+        and not spc.molecule[0].is_radical()
+    ):
+        liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
+            reactants=[fragment_species["CD"], spc],
+            only_families=["Diels_alder_addition"],
+        )
 
     # if calculate_subgraph_isomorphisms(spc.molecule[0], "carbon_double_bond") > 0 and not spc.molecule[0].is_radical():
     #     liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(reactants=[fragment_species["KR"],spc],only_families=["R_Addition_MultipleBond"])
 
     if spc.multiplicity == 2:
-
         liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
             reactants=[fragment_species["CDB"], spc],
             only_families=["R_Addition_MultipleBond"],
@@ -440,7 +464,6 @@ def generate_liq_film_reactions(spc):
         calculate_subgraph_isomorphisms(spc.molecule[0], "allylic_CH") > 0
         and not spc.molecule[0].is_radical()
     ):
-
         for fragment_radical_label in fragment_radical_labels:
             rxns = rmg.database.kinetics.generate_reactions_from_families(
                 reactants=[fragment_species[fragment_radical_label], spc],
@@ -470,7 +493,6 @@ def generate_liq_film_reactions(spc):
         )
 
     if include_oxygen:
-
         # if calculate_subgraph_isomorphisms(spc.molecule[0], "COOH") > 0 and not spc.molecule[0].is_radical():
 
         #     for fragment_radical_label in fragment_radical_labels:
@@ -483,25 +505,33 @@ def generate_liq_film_reactions(spc):
         #                             liq_film_reactions.append(reaction)
 
         if spc.smiles == "[O][O]":
-            liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
-                reactants=[fragment_species["AR"], spc],
-                only_families=["R_Recombination"],
+            liq_film_reactions += (
+                rmg.database.kinetics.generate_reactions_from_families(
+                    reactants=[fragment_species["AR"], spc],
+                    only_families=["R_Recombination"],
+                )
             )
-            liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
-                reactants=[fragment_species["KR"], spc],
-                only_families=["R_Recombination"],
+            liq_film_reactions += (
+                rmg.database.kinetics.generate_reactions_from_families(
+                    reactants=[fragment_species["KR"], spc],
+                    only_families=["R_Recombination"],
+                )
             )
 
         if spc.smiles == "[O]O":
-            liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
-                reactants=[fragment_species["CDB"], spc],
-                only_families=["HO2_Elimination_from_PeroxyRadical"],
+            liq_film_reactions += (
+                rmg.database.kinetics.generate_reactions_from_families(
+                    reactants=[fragment_species["CDB"], spc],
+                    only_families=["HO2_Elimination_from_PeroxyRadical"],
+                )
             )
 
         if spc.smiles == "[OH]":
-            liq_film_reactions += rmg.database.kinetics.generate_reactions_from_families(
-                reactants=[fragment_species["OR"], spc],
-                only_families=["R_Recombination"],
+            liq_film_reactions += (
+                rmg.database.kinetics.generate_reactions_from_families(
+                    reactants=[fragment_species["OR"], spc],
+                    only_families=["R_Recombination"],
+                )
             )
     return liq_film_reactions
 
@@ -634,8 +664,11 @@ print("Time to generate oligomer reactions: {}".format(end_1 - start_1))
 
 print("Getting library kinetics...")
 
+
 def get_library_reactions(reaction):
-    rxns = rmg.database.kinetics.generate_reactions_from_libraries(reactants=reaction.reactants, products=reaction.products)
+    rxns = rmg.database.kinetics.generate_reactions_from_libraries(
+        reactants=reaction.reactants, products=reaction.products
+    )
     if rxns:
         print(reaction.family)
         rxn = rxns[0]
@@ -643,6 +676,7 @@ def get_library_reactions(reaction):
         return rxn
     else:
         return reaction
+
 
 start_1 = time.time()
 new_liq_film_reactions = Parallel(n_jobs=n_jobs, verbose=5, backend="multiprocessing")(
@@ -654,11 +688,13 @@ print("Time to get library reactions: {}".format(end_1 - start_1))
 print("Making new reactions...")
 start_1 = time.time()
 for reaction, new_reaction in zip(liq_film_reactions, new_liq_film_reactions):
-
     new_reaction.family = reaction.family
 
     film_phase_model.make_new_reaction(
-        new_reaction, generate_kinetics=False, generate_thermo=False, perform_cut=False,
+        new_reaction,
+        generate_kinetics=False,
+        generate_thermo=False,
+        perform_cut=False,
     )
 end_1 = time.time()
 print("Time to make new reactions: {}".format(end_1 - start_1))
@@ -666,9 +702,11 @@ print("Time to make new reactions: {}".format(end_1 - start_1))
 for spc in liqspcs:
     film_phase_model.make_new_species(spc, generate_thermo=False)
 
+
 def generate_thermo(spc):
     film_phase_model.generate_thermo(spc)
     return spc.thermo
+
 
 print("Generate thermos...")
 start_1 = time.time()
@@ -679,6 +717,7 @@ for spc, thermo in zip(film_phase_model.new_species_list, thermos):
     spc.thermo = thermo
 end_1 = time.time()
 print("Time to generate thermos: {}".format(end_1 - start_1))
+
 
 def generate_kinetics(forward):
     self = film_phase_model
@@ -698,6 +737,7 @@ def generate_kinetics(forward):
         # we need to make sure the barrier is positive.
         forward.fix_barrier_height(force_positive=True)
     return forward.kinetics
+
 
 print("Generate kinetics...")
 start_1 = time.time()
@@ -734,7 +774,7 @@ for reaction in film_phase_model.new_reaction_list:
 for spc in film_phase_model.core.species:
     for mol in spc.molecule:
         if mol.smiles in liq_smiles_to_label:
-            spc.label = liq_smiles_to_label[mol.smiles]+"(L)"
+            spc.label = liq_smiles_to_label[mol.smiles] + "(L)"
 
 
 print("Saving film phase submodel...")
@@ -756,7 +796,7 @@ write_yml(
 )
 
 save_chemkin_file(
-    os.path.join(save_directory, 'chem_annotated_film.inp'),
+    os.path.join(save_directory, "chem_annotated_film.inp"),
     film_phase_model.core.species,
     film_phase_model.core.reactions,
     verbose=True,
@@ -764,7 +804,7 @@ save_chemkin_file(
 )
 
 save_species_dictionary(
-    os.path.join(save_directory, 'species_dictionary_film.txt'),
+    os.path.join(save_directory, "species_dictionary_film.txt"),
     film_phase_model.core.species,
 )
 
@@ -798,7 +838,7 @@ for monomer_label in initial_monomer_labels:
 #     fragment_based_reaction_mapping[label] = dict()
 
 #     if any(spc.label not in fragment_species.keys() and spc.label for spc in rxn.reactants):
-        
+
 
 for ind, rxn in enumerate(film_phase_model.core.reactions):
     label = ""
@@ -977,7 +1017,8 @@ for ind, rxn in enumerate(film_phase_model.core.reactions):
             * (
                 calculate_subgraph_isomorphisms(
                     fragment_based_species.molecule[0], "carbon_double_bond"
-                ) - calculate_subgraph_isomorphisms(
+                )
+                - calculate_subgraph_isomorphisms(
                     fragment_based_species.molecule[0], "conjugated_diene"
                 )
             )
@@ -1192,8 +1233,18 @@ for spc_dict in film_mech_dict["Phases"][0]["Species"]:
     if spc_dict["name"] in fragment_intermediate:
         spc_dict["isfragmentintermediate"] = True
 
-film_spc_dicts = [spc_dict for spc_dict in film_mech_dict["Phases"][0]["Species"] if spc_dict.get("isfragmentintermediate", False) or spc_dict.get("isfragment", False)]
-liq_spc_dicts = [spc_dict for spc_dict in film_mech_dict["Phases"][0]["Species"] if not spc_dict.get("isfragmentintermediate", False) and not spc_dict.get("isfragment", False)]
+film_spc_dicts = [
+    spc_dict
+    for spc_dict in film_mech_dict["Phases"][0]["Species"]
+    if spc_dict.get("isfragmentintermediate", False)
+    or spc_dict.get("isfragment", False)
+]
+liq_spc_dicts = [
+    spc_dict
+    for spc_dict in film_mech_dict["Phases"][0]["Species"]
+    if not spc_dict.get("isfragmentintermediate", False)
+    and not spc_dict.get("isfragment", False)
+]
 
 film_mech_dict["Phases"][0]["Species"] = film_spc_dicts
 film_mech_dict["Phases"][0]["name"] = "film"
