@@ -1,5 +1,4 @@
 import os
-import sys
 import argparse
 from joblib import Parallel, delayed
 
@@ -13,21 +12,37 @@ from rmgpy.data.kinetics.family import TemplateReaction
 from rmgpy.data.kinetics.depository import DepositoryReaction
 from rmgpy.kinetics.diffusionLimited import diffusion_limiter
 from rmgpy.chemkin import load_chemkin_file, save_chemkin_file, save_species_dictionary
-from rmgpy.data.vaporLiquidMassTransfer import vapor_liquid_mass_transfer, liquidVolumetricMassTransferCoefficientPowerLaw
+from rmgpy.data.vaporLiquidMassTransfer import (
+    vapor_liquid_mass_transfer,
+    liquidVolumetricMassTransferCoefficientPowerLaw,
+)
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--chemkin_path", type=str, required=True, help="Path to chemkin file",
+        "--chemkin_path",
+        type=str,
+        required=True,
+        help="Path to chemkin file",
     )
     parser.add_argument(
-        "--species_dict_path", type=str, required=True, help="Path to species dictionary file",
+        "--species_dict_path",
+        type=str,
+        required=True,
+        help="Path to species dictionary file",
     )
     parser.add_argument(
-        "--n_jobs", type=int, default=48, help="Number of jobs to run in parallel",
+        "--n_jobs",
+        type=int,
+        default=48,
+        help="Number of jobs to run in parallel",
     )
     parser.add_argument(
-        "--model_name", type=str, required=True, help="The name of the model.",
+        "--model_name",
+        type=str,
+        required=True,
+        help="The name of the model.",
     )
     parser.add_argument(
         "--debug", action="store_true", help="Whether to run in debug mode."
@@ -47,6 +62,7 @@ def parse_arguments():
         model_name,
         debug,
     )
+
 
 (
     chemkin_path,
@@ -95,18 +111,24 @@ diffusion_limiter.enable(solvent_data, rmg.database.solvation)
 
 if include_kLA_kH:
     prefactor = 14.5
-    diffusion_coefficient_power = 1/2
-    solvent_viscosity_power = -1/6
-    solvent_density_power = -1/6
+    diffusion_coefficient_power = 1 / 2
+    solvent_viscosity_power = -1 / 6
+    solvent_density_power = -1 / 6
 
-    liquid_volumetric_mass_transfer_coefficient_power_law = liquidVolumetricMassTransferCoefficientPowerLaw(
-        prefactor=prefactor,
-        diffusion_coefficient_power=diffusion_coefficient_power,
-        solvent_viscosity_power=solvent_viscosity_power,
-        solvent_density_power=solvent_density_power,
+    liquid_volumetric_mass_transfer_coefficient_power_law = (
+        liquidVolumetricMassTransferCoefficientPowerLaw(
+            prefactor=prefactor,
+            diffusion_coefficient_power=diffusion_coefficient_power,
+            solvent_viscosity_power=solvent_viscosity_power,
+            solvent_density_power=solvent_density_power,
+        )
     )
 
-    vapor_liquid_mass_transfer.enable(solvent_data, rmg.database.solvation, liquid_volumetric_mass_transfer_coefficient_power_law)
+    vapor_liquid_mass_transfer.enable(
+        solvent_data,
+        rmg.database.solvation,
+        liquid_volumetric_mass_transfer_coefficient_power_law,
+    )
 
 spcs, rxns = load_chemkin_file(
     chemkin_path,
@@ -123,10 +145,13 @@ if model_name == "QCMD_cell_model":
         "methylenecyclohexene",
     ]
     radicals = [
-        'CC1=CCCC(OOC2CCCC=C2C)[CH]1', 'CC1=C[CH]CC=C1', 'CC1C=CC(OOC2(C)[CH]C=CCC2)CC1',
-        'CC1=C[CH]CC(C2(C)C=CCCC2)=C1', 'CC1=CCCCC1OOC1(C)[CH]C=CCC1',
-        'CC1CC=CC(OOC2(C)[CH]C=CCC2)C1',
-        'CC1=CC=CC[CH]1',
+        "CC1=CCCC(OOC2CCCC=C2C)[CH]1",
+        "CC1=C[CH]CC=C1",
+        "CC1C=CC(OOC2(C)[CH]C=CCC2)CC1",
+        "CC1=C[CH]CC(C2(C)C=CCCC2)=C1",
+        "CC1=CCCCC1OOC1(C)[CH]C=CCC1",
+        "CC1CC=CC(OOC2(C)[CH]C=CCC2)C1",
+        "CC1=CC=CC[CH]1",
     ]
 elif model_name == "basecase_debutanizer_model":
     monomers = [
@@ -140,12 +165,25 @@ elif model_name == "basecase_debutanizer_model":
         "STYRENE",
     ]
     radicals = [
-        # '[CH]1C=CCC1C1C=CC=C1',
-        '[CH]1C=CC2C3C=CC(C3)C12',
+        "[CH]1C=CC2C3C=CC(C3)C12",
     ]
 else:
-    monomers = []
-    radicals = []
+    monomers = [
+        "N-BUTANE",
+        "2-BUTENE",
+        "1,3-BUTADIENE",
+        "CYCLOPENTADIENE",
+        "BENZENE",
+        "1,3-CYCLOHEXADIENE",
+        "TOLUENE",
+        "STYRENE",
+    ]
+    radicals = [
+        "C=C[CH]COOC1C=CCC1C1C=CCC=C1",
+        "[CH2]C=CCCC=CCOOC(C=C)COOC(C)C=C",
+        "[CH]1C=CC2C3C=CC(C3)C12",
+        "[O]OC1C=CC2C3C=CC(C3)C12",
+    ]
 
 spcs_smis = set([mol.to_smiles() for spc in spcs for mol in spc.molecule])
 
@@ -157,7 +195,9 @@ for spc in radicals:
 print("Adding missing chain transfer reactions...")
 for spc1 in monomers:
     for spc2 in radicals:
-        new_rxns = rmg.database.kinetics.generate_reactions_from_families(reactants=[spc1, spc2], only_families=["H_Abstraction"])
+        new_rxns = rmg.database.kinetics.generate_reactions_from_families(
+            reactants=[spc1, spc2], only_families=["H_Abstraction"]
+        )
         for new_rxn in new_rxns:
             add = False
             for prod in new_rxn.products:
@@ -165,7 +205,7 @@ for spc1 in monomers:
                     add = True
             if add:
                 rxns.append(new_rxn)
-                for spc in new_rxn.reactants+new_rxn.products:
+                for spc in new_rxn.reactants + new_rxn.products:
                     spcs.append(spc)
 
 
@@ -175,23 +215,34 @@ for i in range(len(radicals)):
     for j in range(i + 1, len(radicals)):
         spc1 = radicals[i]
         spc2 = radicals[j]
-        new_rxns = rmg.database.kinetics.generate_reactions_from_families(reactants=[spc1, spc2], only_families=["R_Recombination"])
+        new_rxns = rmg.database.kinetics.generate_reactions_from_families(
+            reactants=[spc1, spc2], only_families=["R_Recombination"]
+        )
         rxns += new_rxns
         for rxn in new_rxns:
-            for spc in rxn.reactants+rxn.products:
+            for spc in rxn.reactants + rxn.products:
                 spcs.append(spc)
 
 model = CoreEdgeReactionModel()
 model.solvent_name = rmg.solvent
 
+
 def update_thermo(spc):
     self = model
     spc.thermo = None
     self.generate_thermo(spc)
-    return spc.thermo, spc.liquid_volumetric_mass_transfer_coefficient_data, spc.henry_law_constant_data
+    return (
+        spc.thermo,
+        spc.liquid_volumetric_mass_transfer_coefficient_data,
+        spc.henry_law_constant_data,
+    )
+
 
 def update_reaction(rxn):
-    rxns = rmg.database.kinetics.generate_reactions_from_libraries(reactants=rxn.reactants, products=rxn.products,)
+    rxns = rmg.database.kinetics.generate_reactions_from_libraries(
+        reactants=rxn.reactants,
+        products=rxn.products,
+    )
     if rxns:
         # rxn.family = rxns[0].family.label.replace("Kinetics Library ", "")
         # forward = rxn
@@ -208,7 +259,9 @@ def update_reaction(rxn):
             print("library:", forward.library)
             print("")
     else:
-        rxns = rmg.database.kinetics.generate_reactions_from_families(reactants=rxn.reactants, products=rxn.products, only_families=rxn.family)
+        rxns = rmg.database.kinetics.generate_reactions_from_families(
+            reactants=rxn.reactants, products=rxn.products, only_families=rxn.family
+        )
         if rxns:
             forward = rxns[0]
 
@@ -230,20 +283,22 @@ def update_reaction(rxn):
 
     return forward
 
+
 def apply_kinetics_to_reaction(self, reaction):
     """
     retrieve the best kinetics for the reaction and apply it towards the forward
     or reverse direction (if reverse, flip the direaction).
     """
     from rmgpy.data.rmg import get_db
+
     # Find the reaction kinetics
     kinetics, source, entry, is_forward = self.generate_kinetics(reaction)
     # Flip the reaction direction if the kinetics are defined in the reverse direction
     if not is_forward:
-        family = get_db('kinetics').families[reaction.family]
+        family = get_db("kinetics").families[reaction.family]
         reaction.reactants, reaction.products = reaction.products, reaction.reactants
         reaction.pairs = [(p, r) for r, p in reaction.pairs]
-        if family.own_reverse and hasattr(reaction, 'reverse'):
+        if family.own_reverse and hasattr(reaction, "reverse"):
             if reaction.reverse:
                 reaction.template = reaction.reverse.template
                 # replace degeneracy
@@ -252,6 +307,7 @@ def apply_kinetics_to_reaction(self, reaction):
             reaction.reverse = None
     reaction.kinetics = kinetics
     return is_forward
+
 
 def update_kinetics(forward):
     self = model
@@ -273,11 +329,12 @@ def update_kinetics(forward):
         # If this is going to be run through pressure dependence code,
         # we need to make sure the barrier is positive.
         forward.fix_barrier_height(force_positive=True)
-    
+
     if debug:
         print("forward:", forward)
         print("is forward:", forward.is_forward)
     return forward.kinetics, different_direction
+
 
 print("Making new species...")
 
@@ -293,10 +350,16 @@ thermos_kLAs_kHs = Parallel(n_jobs=n_jobs, verbose=5, backend="multiprocessing")
 )
 
 for spc, thermo_kLA_kH in zip(model.new_species_list, thermos_kLAs_kHs):
-    thermo, liquid_volumetric_mass_transfer_coefficient_data, henry_law_constant_data = thermo_kLA_kH
+    (
+        thermo,
+        liquid_volumetric_mass_transfer_coefficient_data,
+        henry_law_constant_data,
+    ) = thermo_kLA_kH
     spc.thermo = thermo
     if include_kLA_kH:
-        spc.liquid_volumetric_mass_transfer_coefficient_data = liquid_volumetric_mass_transfer_coefficient_data
+        spc.liquid_volumetric_mass_transfer_coefficient_data = (
+            liquid_volumetric_mass_transfer_coefficient_data
+        )
         spc.henry_law_constant_data = henry_law_constant_data
 
 print("Updating reactions...")
@@ -318,10 +381,25 @@ print("Making new reactions...")
 for rxn in new_rxns:
     if not isinstance(rxn.family, str):
         rxn.family = rxn.family.label.replace("Kinetics Library ", "")
-    if rxn.family in rmg.database.kinetics.families or rxn.family in rmg.database.kinetics.libraries:
-        model.make_new_reaction(rxn, check_existing=True, generate_thermo=False, generate_kinetics=False, perform_cut=False,)
+    if (
+        rxn.family in rmg.database.kinetics.families
+        or rxn.family in rmg.database.kinetics.libraries
+    ):
+        model.make_new_reaction(
+            rxn,
+            check_existing=True,
+            generate_thermo=False,
+            generate_kinetics=False,
+            perform_cut=False,
+        )
     else:
-        model.make_new_reaction(rxn, check_existing=False, generate_thermo=False, generate_kinetics=False, perform_cut=False,)
+        model.make_new_reaction(
+            rxn,
+            check_existing=False,
+            generate_thermo=False,
+            generate_kinetics=False,
+            perform_cut=False,
+        )
 
 
 print(f"Updating kinetics for {len(model.new_reaction_list)} reactions...")
@@ -336,7 +414,7 @@ for rxn, kinetics_diff_dir in zip(model.new_reaction_list, new_kinetics):
         rxn.reactants, rxn.products = rxn.products, rxn.reactants
         rxn.pairs = [(p, r) for r, p in rxn.pairs]
         family = rmg.database.kinetics.families[rxn.family]
-        if family.own_reverse and hasattr(rxn, 'reverse'):
+        if family.own_reverse and hasattr(rxn, "reverse"):
             if rxn.reverse:
                 rxn.template = rxn.reverse.template
                 # replace degeneracy

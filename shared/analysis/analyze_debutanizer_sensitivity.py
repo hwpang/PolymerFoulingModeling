@@ -52,11 +52,24 @@ if model_name == "basecase_debutanizer_model":
     perturbed_species_list = ["1,3-BUTADIENE", "CYCLOPENTADIENE"]
     perturbed_factor_list = ["0.5", "0.7", "0.9", "1.1", "1.3", "1.5", "1.7", "1.9"]
     delta_t = 64.0
-    families = ["Diels-Alder addition", "radical addition"]
+    reaction_types = ["Diels-Alder addition", "radical addition"]
 else:
     perturbed_species_list = ["OXYGEN"]
-    perturbed_factor_list = ["0.0", "1e-6", "1e-5", "1e-4", "1e-3", "1e-2", "1e-1", "1e0"]
+    perturbed_factor_list = [
+        "0.0",
+        "1e-6",
+        "1e-5",
+        "1e-4",
+        "1e-3",
+        "1e-2",
+        "1e-1",
+        "1e0",
+    ]
     delta_t = 32.0
+    reaction_types = [
+        "carbon-center radical addition",
+        "oxygen-center radical addition",
+    ]
 
 perturbed_factor_num_list = [
     float(perturbed_factor) for perturbed_factor in perturbed_factor_list
@@ -139,7 +152,9 @@ def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
     fouling_chemistry_contribution = dict()
     for perturbed_species in perturbed_species_list:
         for perturbed_factor in perturbed_factor_list:
-            fouling_chemistry_contribution[(perturbed_species, perturbed_factor)] = {family: np.zeros(len(trays)) for family in families}
+            fouling_chemistry_contribution[(perturbed_species, perturbed_factor)] = {
+                reaction_type: np.zeros(len(trays)) for reaction_type in reaction_types
+            }
             for tray in trays:
                 df = film_rop_results[perturbed_species, perturbed_factor, tray]
                 name_inds = df["rop_spcname"] == "mass"
@@ -147,31 +162,66 @@ def calculate_fouling_chemistry_contribution(film_rop_results, normalize=True):
                 rops = df.loc[name_inds, "rop"]
 
                 for rop_rxncomment, rop in zip(rop_rxncomments, rops):
-                    for family in families:
-                        if family in rop_rxncomment:
-                            fouling_chemistry_contribution[perturbed_species, perturbed_factor][family][tray-1] += rop
-    
+                    for reaction_type in reaction_types:
+                        if model_name == "basecase_debutanizer_model":
+                            if reaction_type in rop_rxncomment:
+                                fouling_chemistry_contribution[
+                                    perturbed_species, perturbed_factor
+                                ][reaction_type][tray - 1] += rop
+                        elif model_name == "trace_oxygen_perturbed_debutanizer_model":
+                            if "PR" in rop_rxncomment or "OR" in rop_rxncomment:
+                                fouling_chemistry_contribution[
+                                    perturbed_species, perturbed_factor
+                                ]["oxygen-center radical addition"][tray - 1] += rop
+                            elif "AR" in rop_rxncomment or "KR" in rop_rxncomment:
+                                fouling_chemistry_contribution[
+                                    perturbed_species, perturbed_factor
+                                ]["carbon-center radical addition"][tray - 1] += rop
+
     if normalize:
         for perturbed_species in perturbed_species_list:
             for perturbed_factor in perturbed_factor_list:
-                rop_sum = np.sum([fouling_chemistry_contribution[perturbed_species, perturbed_factor][family] for family in families], axis=0)
-                for family in families:
-                    fouling_chemistry_contribution[perturbed_species, perturbed_factor][family] /= rop_sum
-    
+                rop_sum = np.sum(
+                    [
+                        fouling_chemistry_contribution[
+                            perturbed_species, perturbed_factor
+                        ][reaction_type]
+                        for reaction_type in reaction_types
+                    ],
+                    axis=0,
+                )
+                for reaction_type in reaction_types:
+                    fouling_chemistry_contribution[perturbed_species, perturbed_factor][
+                        reaction_type
+                    ] /= rop_sum
+                    fouling_chemistry_contribution[perturbed_species, perturbed_factor][
+                        reaction_type
+                    ] *= 100.0
+
     return fouling_chemistry_contribution
 
 
 print("Plotting all sensitivity simulation results...")
 
-normalized_fouling_chemistry_contribution = calculate_fouling_chemistry_contribution(film_rop_results, normalize=True)
+normalized_fouling_chemistry_contribution = calculate_fouling_chemistry_contribution(
+    film_rop_results, normalize=True
+)
 print(normalized_fouling_chemistry_contribution)
 
 factorcmap = plt.get_cmap("PuRd")
-nrows = 5
-ncols = 2
 markers = ["x", "v", "D", "P", "X", "8", "p", "*", "h", "H", "d"]
-# cmaps = ["Blues", "Greens", "Purples", "Oranges"]
-fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True)
+
+if model_name == "basecase_debutanizer_model":
+    nrows = 5
+    ncols = 2
+    fig, axs = plt.subplots(
+        nrows=nrows, ncols=ncols, figsize=(6, 10), sharex=True, sharey="row"
+    )
+elif model_name == "trace_oxygen_perturbed_debutanizer_model":
+    nrows = 4
+    ncols = 2
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(6, 8), sharex=True)
+
 if model_name == "basecase_debutanizer_model":
     for species_ind, perturbed_species in enumerate(perturbed_species_list):
         for factor_ind, perturbed_factor in enumerate(perturbed_factor_list):
@@ -187,7 +237,8 @@ if model_name == "basecase_debutanizer_model":
                 liquid_carbon_center_radical_concs,
                 color=factorcmap(factor_ind / len(perturbed_factor_list)),
             )
-            ax.set_ylabel("R.(L) (mol/m³)")
+            if species_ind == 0:
+                ax.set_ylabel("R.(L) (mol/m³)")
             ax.set_yscale("log")
             ax.set_title(perturbed_species)
 
@@ -203,7 +254,8 @@ if model_name == "basecase_debutanizer_model":
                 film_growth_time_constants,
                 color=factorcmap(factor_ind / len(perturbed_factor_list)),
             )
-            ax.set_ylabel("Film growth τ (year)")
+            if species_ind == 0:
+                ax.set_ylabel("Film growth τ (year)")
             ax.set_yscale("log")
 
             ax = axs[2, species_ind]
@@ -219,7 +271,8 @@ if model_name == "basecase_debutanizer_model":
                 film_fragment_per_mass,
                 color=factorcmap(factor_ind / len(perturbed_factor_list)),
             )
-            ax.set_ylabel("AR (mol/kg)")
+            if species_ind == 0:
+                ax.set_ylabel("AR (mol/kg)")
             ax.set_yscale("log")
 
             ax = axs[3, species_ind]
@@ -235,18 +288,24 @@ if model_name == "basecase_debutanizer_model":
                 film_fragment_per_mass,
                 color=factorcmap(factor_ind / len(perturbed_factor_list)),
             )
-            ax.set_ylabel("KR (mol/kg)")
+            if species_ind == 0:
+                ax.set_ylabel("KR (mol/kg)")
             ax.set_yscale("log")
 
             ax = axs[4, species_ind]
-            contribution = normalized_fouling_chemistry_contribution[perturbed_species, perturbed_factor]
+            contribution = normalized_fouling_chemistry_contribution[
+                perturbed_species, perturbed_factor
+            ]
             label = None
-            for ind, family in enumerate(families):
-                if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
-                    label = family
+            for ind, reaction_type in enumerate(reaction_types):
+                if (
+                    perturbed_factor == perturbed_factor_list[-1]
+                    and perturbed_species == perturbed_species_list[-1]
+                ):
+                    label = reaction_type
                 ax.scatter(
                     trays,
-                    contribution[family],
+                    contribution[reaction_type],
                     # color=plt.get_cmap(cmaps[ind])(factor_ind / len(perturbed_factor_list)),
                     color=factorcmap(factor_ind / len(perturbed_factor_list)),
                     marker=markers[ind],
@@ -254,9 +313,13 @@ if model_name == "basecase_debutanizer_model":
                     label=label,
                     zorder=ind,
                 )
-            ax.set_ylabel("Film growth\nchemistry (%)")
-            
-            if perturbed_factor == perturbed_factor_list[-1] and perturbed_species == perturbed_species_list[-1]:
+            if species_ind == 0:
+                ax.set_ylabel("Importance of\nfilm growth pathways (%)")
+
+            if (
+                perturbed_factor == perturbed_factor_list[-1]
+                and perturbed_species == perturbed_species_list[-1]
+            ):
                 ax.legend(bbox_to_anchor=(1.05, -0.3), loc="upper right")
 
 else:
@@ -335,7 +398,9 @@ else:
                 for tray in trays
             ]
             ax.scatter(
-                trays, AR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list))
+                trays,
+                AR_concs,
+                color=factorcmap(factor_ind / len(perturbed_factor_list)),
             )
             ax.set_ylabel("AR/mass (mol/kg)")
             ax.set_yscale("log")
@@ -349,7 +414,9 @@ else:
                 for tray in trays
             ]
             ax.scatter(
-                trays, KR_concs, color=factorcmap(factor_ind / len(perturbed_factor_list))
+                trays,
+                KR_concs,
+                color=factorcmap(factor_ind / len(perturbed_factor_list)),
             )
             ax.set_ylabel("KR/mass (mol/kg)")
             ax.set_yscale("log")
@@ -359,7 +426,8 @@ else:
                 ax = axs[3, 0]
                 PR_concs = [
                     calculate_fragment_per_mass(
-                        film_simulations[perturbed_species, perturbed_factor, tray], "PR"
+                        film_simulations[perturbed_species, perturbed_factor, tray],
+                        "PR",
                     )
                     for tray in trays
                 ]
@@ -375,7 +443,8 @@ else:
                 ax = axs[3, 1]
                 OR_concs = [
                     calculate_fragment_per_mass(
-                        film_simulations[perturbed_species, perturbed_factor, tray], "OR"
+                        film_simulations[perturbed_species, perturbed_factor, tray],
+                        "OR",
                     )
                     for tray in trays
                 ]
@@ -388,14 +457,13 @@ else:
                 ax.set_yscale("log")
                 ax.set_title("(h)", loc="left")
 
+
 axs[-1, 0].set_xlabel("Trays")
 axs[-1, 1].set_xlabel("Trays")
 
 cbar_ax = fig.add_axes([1.0, 0.15, 0.02, 0.7])
 if model_name == "basecase_debutanizer_model":
-    sm = plt.cm.ScalarMappable(
-        cmap="RdPu", norm=plt.Normalize(vmin=0.5, vmax=1.9)
-    )
+    sm = plt.cm.ScalarMappable(cmap="RdPu", norm=plt.Normalize(vmin=0.5, vmax=1.9))
 else:
     sm = plt.cm.ScalarMappable(
         cmap="RdPu", norm=plt.matplotlib.colors.LogNorm(vmin=1e-7, vmax=1e0)
