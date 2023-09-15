@@ -170,7 +170,7 @@ concs = peroxyl_radical_mols / Vliq
 ax.plot(trays, concs, "-x", label="ROO.")
 concs = alkoxyl_radical_mols / Vliq
 ax.plot(trays, concs, "-s", label="RO.")
-ax.set_ylabel(r"R.(liq) (mol/m$^3$)", fontsize=12)
+ax.set_ylabel("[R.(liq)] (mol/$\mathrm{m}^3$)", fontsize=12)
 ax.set_xlabel("Tray", fontsize=12)
 ax.set_yscale("log")
 ax.set_title("(a)", loc="left")
@@ -198,12 +198,12 @@ ax.plot(
     "-s",
     label="RO.",
 )
-ax.set_ylabel(
-    "R.(liq) " + r"$\tau_\mathrm{chem}$" + "/" + r"$\tau_\mathrm{res}$", fontsize=12
-)
 ax.set_xlabel("Tray", fontsize=12)
+ax.set_ylabel("(-)", fontsize=12)
 ax.set_yscale("log")
-ax.set_title("(b)", loc="left")
+ax.set_title("(b) R.(liq) $\\tau_\mathrm{chem}/\\tau_\mathrm{res}$", loc="left")
+if model_name != "basecase_debutanizer_model":
+    ax.legend(bbox_to_anchor=(1, 1))
 
 patterns = ["//", "\\\\", "||", "--", "++", "xx", "oo", "OO", "..", "**"]
 
@@ -244,6 +244,14 @@ for consumption_path in consumption_paths:
             label = consumption_path.replace("R.", "RC.")
         else:
             label = consumption_path
+        label = label.replace("_outlet", " outlet")
+        label = label.replace("_evap", " evap")
+        label = label.replace("_Add", " add")
+        label = label.replace("_Habs", " Habs")
+        label = label.replace("_Recomb", " recomb")
+        label = label.replace("_Disprop", " disprop")
+        label = label.replace("_CycEther", " cyc")
+        label = label.replace("_eli", " eli")
         ax.bar(
             trays,
             percentages,
@@ -255,12 +263,12 @@ for consumption_path in consumption_paths:
         count += 1
         bottom += percentages
 ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
-ax.set_ylabel("R.(liq) consumption (%)")
+ax.set_ylabel("(%)")
 ax.set_ylim([0, 100])
-ax.set_title("(c)", loc="left")
+ax.set_title("(c) R.(liq) consumption", loc="left")
 ax.set_xticks([])
 ax.set_xticklabels([])
-ax.legend(bbox_to_anchor=(1, 1))
+ax.legend(bbox_to_anchor=(1, 1.06))
 
 ax = fig.add_subplot(gs[2, :])
 bottom = np.zeros(len(trays))
@@ -285,6 +293,9 @@ for production_path in production_paths:
             label = production_path.replace("R.", "RC.")
         else:
             label = production_path
+        label = label.replace("_inlet", " inlet")
+        label = label.replace("_cond", " cond")
+        label = label.replace("_RevDisprop", " revdisprop")
         ax.bar(
             trays,
             percentages,
@@ -297,13 +308,13 @@ for production_path in production_paths:
         bottom += percentages
 if model_name != "basecase_debutanizer_model":
     ax.bar(trays, 100.0 - bottom, bottom=bottom, label="other")
-ax.set_ylabel("R.(liq) production (%)")
+ax.set_ylabel("(%)")
 ax.set_ylim([0, 100])
-ax.set_title("(d)", loc="left")
-ax.legend(bbox_to_anchor=(1, 1))
+ax.set_title("(d) R.(liq) production", loc="left")
+ax.legend(bbox_to_anchor=(1, 1.06))
 ax.set_xlabel("Tray", fontsize=12)
 
-plt.subplots_adjust(wspace=0, hspace=0)
+fig.align_labels()
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_liquid_radical.pdf", bbox_inches="tight")
 
@@ -320,7 +331,7 @@ if model_name == "basecase_debutanizer_model":
     ax = fig.add_subplot(gs[0, 0])
     ax.scatter(trays, alphas_DA, c=cs, zorder=2)
     ax.plot(trays, alphas_DA, zorder=1, color="grey")
-    ax.set_ylabel(r"$\alpha_\mathrm{DA}$", fontsize=13)
+    ax.set_ylabel("$\\alpha_\mathrm{DA}$", fontsize=13)
     ax.set_xlabel("Tray")
     ax.set_title("(a)", loc="left")
     ax.set_yscale("log")
@@ -329,7 +340,7 @@ if model_name == "basecase_debutanizer_model":
     ax.scatter(trays, alphas, c=cs, zorder=2)
     ax.plot(trays, alphas, zorder=1, color="grey")
     ax.set_ylim([0, 1])
-    ax.set_ylabel(r"$\alpha_\mathrm{R.}$", fontsize=13)
+    ax.set_ylabel("$\\alpha_\mathrm{R.}$", fontsize=13)
     ax.set_xlabel("Tray")
     ax.set_title("(b)", loc="left")
 
@@ -350,7 +361,7 @@ else:
         alpha1_RC_add,
         c=cs,
         zorder=2,
-        label=r"$\alpha_\mathrm{RC. add}$",
+        label="$\\alpha_\mathrm{RC. add}$",
         marker="s",
     )
     ax.plot(trays, alpha1_RC_add, zorder=1, color="grey")
@@ -359,33 +370,33 @@ else:
         alpha1_RC_O2,
         c=cs,
         zorder=2,
-        label=r"$\alpha_\mathrm{RC.+O2}$",
+        label="$\\alpha_\mathrm{RC.+O2}$",
         marker="x",
     )
     ax.plot(trays, alpha1_RC_O2, zorder=1, color="grey")
     ax.set_ylim([0, 1])
-    ax.set_ylabel(r"$\alpha_\mathrm{RC.}$", fontsize=13)
+    ax.set_ylabel("(-)", fontsize=12)
     ax.set_xticks([])
     ax.set_xticklabels([])
-    ax.set_title("(a)", loc="left")
+    ax.set_title("(a) $\\alpha_\mathrm{RC.}$", loc="left")
     ax.legend(bbox_to_anchor=(1, 1))
 
     ax = fig.add_subplot(gs[1, 0])
     ax.scatter(trays, alpha2, c=cs, zorder=2)
     ax.plot(trays, alpha2, zorder=1, color="grey")
     ax.set_ylim([0, 1])
-    ax.set_ylabel(r"$\alpha_\mathrm{ROO.}$", fontsize=13)
+    ax.set_ylabel("(-)", fontsize=12)
     ax.set_xticks([])
     ax.set_xticklabels([])
-    ax.set_title("(b)", loc="left")
+    ax.set_title("(b) $\\alpha_\mathrm{ROO.}$", loc="left")
 
     ax = fig.add_subplot(gs[2, 0])
     ax.scatter(trays, alphas, c=cs, zorder=2)
     ax.plot(trays, alphas, zorder=1, color="grey")
     ax.set_ylim([0, 1])
-    ax.set_ylabel(r"$\alpha_\mathrm{R.}$", fontsize=13)
+    ax.set_ylabel("(-)", fontsize=12)
     ax.set_xlabel("Tray")
-    ax.set_title("(c)", loc="left")
+    ax.set_title("(c) $\\alpha_\mathrm{R.}$", loc="left")
 
 ax = fig.add_subplot(gs[:, 1:], projection="3d")
 
@@ -404,9 +415,9 @@ def Wn(n, alpha):
 for n in ns:
     cs = cmap(trays / len(trays))
     ax.bar(trays, Wn(n, alphas), zs=n, zdir="x", color=cs)
-ax.set_xlabel(r"$k$")
+ax.set_xlabel("$k$")
 ax.set_ylabel("Tray", labelpad=10)
-ax.set_zlabel(r"W($k$)", labelpad=10)
+ax.set_zlabel("w($k$)", labelpad=10)
 
 fig.tight_layout()
 fig.savefig(f"Figures/{model_name}_ASF_distribution.pdf", bbox_inches="tight")
@@ -434,7 +445,7 @@ fig, ax = plt.subplots()
 for label in max_conc_liq_radical_labels:
     ax.plot(trays, liquid_simulation_df.loc[:, label], label=label)
 ax.set_yscale("log")
-ax.set_ylabel("Concentration (mol/m$^3$)")
+ax.set_ylabel("Concentration (mol/$\mathrm{m}^3$)")
 ax.set_xlabel("Tray")
 ax.legend(bbox_to_anchor=(1, 1))
 fig.tight_layout()
@@ -453,13 +464,22 @@ def plot_liquid_rop(name, labels, loss_only=False, production_only=False):
     min_rop = 1e10
     max_rop = 0
     for ind, tray in enumerate(selected_trays):
-        rops, rop_sourcestrings = get_liquid_rops(
-            liquid_rop_results[tray],
-            labels,
-            radicals_only=True,
-            loss_only=loss_only,
-            production_only=production_only,
-        )
+        if name == "RC.":
+            rops, rop_sourcestrings = get_liquid_rops(
+                liquid_rop_results[tray],
+                labels,
+                radicals_only=True,
+                loss_only=loss_only,
+                production_only=production_only,
+            )
+        else:
+            rops, rop_sourcestrings = get_liquid_rops(
+                liquid_rop_results[tray],
+                labels,
+                radicals_only=False,
+                loss_only=loss_only,
+                production_only=production_only,
+            )
         normalized_rops = rops.abs() / Vliq
         if normalized_rops.empty:
             continue
@@ -479,7 +499,7 @@ def plot_liquid_rop(name, labels, loss_only=False, production_only=False):
     for ax in axs:
         ax.set_xlim(min_rop, max_rop)
 
-    axs[-1].set_xlabel(f"Rate of {name} loss (mol/(m^3*s))")
+    axs[-1].set_xlabel(f"Rate of {name} loss" + " (mol/($\mathrm{m}^3$*s))")
     fig.tight_layout()
 
     if loss_only:
