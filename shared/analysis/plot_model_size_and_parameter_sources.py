@@ -105,7 +105,7 @@ def plot_num_rxns_per_spc_by_spc_size(spcs, rxns, ax=None):
     )
 
 
-def categorize_spc_by_thermo_source(spcs, ax=None):
+def categorize_spc_by_thermo_source(spcs):
     spc_by_thermo_source = {}
     spc_by_thermo_source["Library"] = []
     spc_by_thermo_source["QM"] = []
@@ -140,16 +140,30 @@ def categorize_spc_by_thermo_source(spcs, ax=None):
         count = len(spc_list)
         print(f"{source}: {count} ({count/len(spcs)*100:.0f}%)")
 
+    return spc_by_thermo_source
+
+def get_num_heavy_atoms(spc, use_carbon=False, use_oxygen=False):
+    assert not (use_carbon and use_oxygen)
+
+    if use_carbon:
+        return spc.molecule[0].get_num_atoms("C")
+    elif use_oxygen:
+        return spc.molecule[0].get_num_atoms("O")
+    else:
+        return spc.molecule[0].get_num_atoms() - spc.molecule[0].get_num_atoms("H")
+
+def plot_spc_thermo_source_by_spc_size(spc_by_thermo_source, ax=None, use_carbon=False, use_oxygen=False):
+
     GAV_spc_sizes = [
-        spc.molecule[0].get_num_atoms() - spc.molecule[0].get_num_atoms("H")
+        get_num_heavy_atoms(spc, use_carbon=use_carbon, use_oxygen=use_oxygen)
         for spc in spc_by_thermo_source["GAV"]
     ]
     QM_spc_sizes = [
-        spc.molecule[0].get_num_atoms() - spc.molecule[0].get_num_atoms("H")
+        get_num_heavy_atoms(spc, use_carbon=use_carbon, use_oxygen=use_oxygen)
         for spc in spc_by_thermo_source["QM"]
     ]
     Library_spc_sizes = [
-        spc.molecule[0].get_num_atoms() - spc.molecule[0].get_num_atoms("H")
+        get_num_heavy_atoms(spc, use_carbon=use_carbon, use_oxygen=use_oxygen)
         for spc in spc_by_thermo_source["Library"]
     ]
 
@@ -164,7 +178,6 @@ def categorize_spc_by_thermo_source(spcs, ax=None):
         stacked=True,
         edgecolor="black",
     )
-    ax.legend(bbox_to_anchor=(0.0, -0.1, 1.0, -0.1), loc=1)
 
 
 def categorize_rxn_by_kinetic_source(rxns):
@@ -210,27 +223,26 @@ def categorize_rxn_by_kinetic_source(rxns):
 
     return rxn_by_kinetic_source
 
-
 def categorize_rxn_by_kinetic_source_and_size(rxns, ax=None):
     rxn_by_kinetic_source = categorize_rxn_by_kinetic_source(rxns)
 
     GAV_rxn_sizes = [
         sum(
-            spc.molecule[0].get_num_atoms() - spc.molecule[0].get_num_atoms("H")
+            get_num_heavy_atoms(spc)
             for spc in rxn.reactants
         )
         for rxn in rxn_by_kinetic_source["Rate rules"]
     ]
     QM_rxn_sizes = [
         sum(
-            spc.molecule[0].get_num_atoms() - spc.molecule[0].get_num_atoms("H")
+            get_num_heavy_atoms(spc)
             for spc in rxn.reactants
         )
         for rxn in rxn_by_kinetic_source["QM"]
     ]
     Library_rxn_sizes = [
         sum(
-            spc.molecule[0].get_num_atoms() - spc.molecule[0].get_num_atoms("H")
+            get_num_heavy_atoms(spc)
             for spc in rxn.reactants
         )
         for rxn in rxn_by_kinetic_source["Library"]
@@ -426,11 +438,15 @@ elif model_name == "trace_oxygen_perturbed_debutanizer_model":
     all_debutanizer_rxns = debutanizer_liqrxns + debutanizer_filmrxns
 
 print("Plotting model parameter source distributions...")
+print(f"Model: {model_name}")
+
 if model_name in ["basecase_debutanizer_model", "QCMD_cell_model"]:
     fig, axs = plt.subplots(3, 2, figsize=(8, 11))
 
     ax = axs[0, 0]
-    categorize_spc_by_thermo_source(all_debutanizer_spcs, ax=ax)
+    spc_by_thermo_source = categorize_spc_by_thermo_source(all_debutanizer_spcs)
+    plot_spc_thermo_source_by_spc_size(spc_by_thermo_source, ax=ax)
+    ax.legend(bbox_to_anchor=(0.0, -0.1, 1.0, -0.1), loc=1)
     ax.set_title("(a) Debutanizer model", loc="left")
     ax.set_ylabel("Number of species")
     ax.set_xlabel("Number of heavy atoms")
@@ -472,30 +488,43 @@ if model_name in ["basecase_debutanizer_model", "QCMD_cell_model"]:
     fig.savefig("Figures/thermo_and_kinetic_source.pdf", bbox_inches="tight")
 
 elif model_name == "trace_oxygen_perturbed_debutanizer_model":
-    fig, axs = plt.subplots(2, 2, figsize=(8, 8))
+    fig, axs = plt.subplots(2, 3, figsize=(11, 8))
     ax = axs[0, 0]
-    categorize_spc_by_thermo_source(all_debutanizer_spcs, ax=ax)
+    spc_by_thermo_source = categorize_spc_by_thermo_source(all_debutanizer_spcs)
+    plot_spc_thermo_source_by_spc_size(spc_by_thermo_source, ax=ax)
+    ax.legend(bbox_to_anchor=(0.0, -0.1, 1.0, -0.1), loc=1)
     ax.set_title("(a)", loc="left")
     ax.set_ylabel("Number of species")
     ax.set_xlabel("Number of heavy atoms")
 
+    ax = axs[0, 1]
+    plot_spc_thermo_source_by_spc_size(spc_by_thermo_source, ax=ax, use_carbon=True)
+    ax.set_title("(b)", loc="left")
+    ax.set_xlabel("Number of carbon atoms")
+
+    ax = axs[0, 2]
+    plot_spc_thermo_source_by_spc_size(spc_by_thermo_source, ax=ax, use_oxygen=True)
+    ax.set_title("(c)", loc="left")
+    ax.set_xlabel("Number of oxygen atoms")
+
     ax = axs[1, 0]
     categorize_rxn_by_kinetic_source_and_size(all_debutanizer_rxns, ax=ax)
-    ax.set_title("(b)", loc="left")
+    ax.set_title("(d)", loc="left")
     ax.set_ylabel("Number of reactions")
     ax.set_xlabel("Number of heavy atoms")
 
     for rxn in all_debutanizer_rxns:
         rxn.family = get_reaction_family(rmg, rxn)
 
-    ax = axs[0, 1]
-    ax.axis("off")
-
     ax = axs[1, 1]
     categorize_rxn_by_kinetic_source_and_family(all_debutanizer_rxns, ax=ax)
-    ax.set_title("(c)", loc="left")
+    ax.set_title("(e)", loc="left")
     ax.set_xlabel("Reaction family")
 
+    ax = axs[1, 2]
+    ax.axis("off")
+
+    fig.align_labels()
     fig.tight_layout()
     fig.savefig("Figures/thermo_and_kinetic_source.pdf", bbox_inches="tight")
 
@@ -575,4 +604,4 @@ elif model_name == "trace_oxygen_perturbed_debutanizer_model":
     ax.set_xlabel("Number of involved reactions")
 
     fig.tight_layout()
-    fig.savefig("Figures/num_rxns_per_family_and per_spc.pdf", bbox_inches="tight")
+    fig.savefig("Figures/num_rxns_per_family_and_per_spc.pdf", bbox_inches="tight")
