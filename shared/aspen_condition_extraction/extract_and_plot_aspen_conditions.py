@@ -194,7 +194,7 @@ for i, spc in enumerate(spcnames):
     )
 
 axs[1, 0].set_title("(b) [major species(liq)]", loc="left", size=12)
-axs[1, 0].set_ylabel("(mol/m^3)")
+axs[1, 0].set_ylabel("(mol/$\mathrm{m}^3$)")
 axs[1, 0].plot([0, 0], [-400, 800], "k--")
 axs[1, 0].plot([0, 41], [-400, -400], "k--")
 axs[1, 0].plot([41, 41], [-400, 800], "k--")
@@ -213,7 +213,7 @@ for i, spc in enumerate(spcnames):
     )
 
 axs[2, 0].set_title("Zoomed in on (b)", loc="left", size=12)
-axs[2, 0].set_ylabel("(mol/m^3)")
+axs[2, 0].set_ylabel("(mol/$\mathrm{m}^3$)")
 axs[2, 0].set_ylim([-20, 600])
 axs[2, 0].set_xticklabels([])
 
@@ -290,7 +290,7 @@ if model_name == "trace_oxygen_perturbed_debutanizer_model":
         label=spc,
         color="C8",
     )
-    axs[4, 0].set_ylabel("(mol/m^3)")
+    axs[4, 0].set_ylabel("(mol/$\mathrm{m}^3$)")
     axs[4, 0].set_title("(f) [$\mathrm{O}_2$(liq)]", loc="left", size=12)
     axs[4, 0].set_xlabel("Tray")
     axs[4, 0].set_yscale("log")
