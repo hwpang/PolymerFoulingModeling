@@ -81,7 +81,10 @@ A collection of Python and Julia scripts used for generating and simulating mult
 
 # Installation
 - git clone RMG-Py (https://github.com/hwpang/RMG-Py), RMG-database (https://github.com/hwpang/RMG-database), and RMS (https://github.com/hwpang/ReactionMechanismSimulator.jl)
-- Check out to branch `polymer_fouling_1` for RMG-Py, RMG-database, and RMS
+- Check out to following commits for the following packages
+    - RMG-Py: `87b96e1b0f65145c413ac0fe2761fdf441d35fea` on `main` branch from `https://github.com/hwpang/RMG-Py`
+    - RMG-database: `e6d81dba399900568e07f8f79399fd6a62696552` on `polymer_fouling_2` branch from `https://github.com/hwpang/RMG-database`
+    - ReactionMechanismSimulator.jl: `ba51c2fccddfa7939218b3dcd13e4649b38b4d70` on `polymer_fouling_2_20230725` branch from `https://github.com/hwpang/ReactionMechanismSimulator.jl`
 - Install RMG-Py following http://reactionmechanismgenerator.github.io/RMG-Py/users/rmg/installation/anacondaDeveloper.html
     - During installtion, use the following to point to your local RMS instead of the main branch on GitHub
         ```
