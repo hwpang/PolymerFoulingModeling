@@ -2,6 +2,7 @@
 A collection of Python and Julia scripts used for generating and simulating multi-phase chemical kinetic models for polymer fouling
 
 ## Repository structure
+```
 📦debutanizer_models
  ┣ 📂basecase # files for the base case debutanizer model
  ┃ ┣ 📂aspen_simulation # files related to process simulation
@@ -78,6 +79,7 @@ A collection of Python and Julia scripts used for generating and simulating mult
  ┗ 📂submit_scripts
  ┃ ┣ 📜submit_0.1_simulation_LLsub.sh
  ┃ ┗ 📜submit_0_all_LLsub.sh
+```
 
 # Installation
 - git clone RMG-Py (https://github.com/hwpang/RMG-Py), RMG-database (https://github.com/hwpang/RMG-database), and RMS (https://github.com/hwpang/ReactionMechanismSimulator.jl)
