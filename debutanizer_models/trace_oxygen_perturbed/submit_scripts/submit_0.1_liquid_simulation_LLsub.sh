@@ -139,9 +139,16 @@ echo "runtime: $runtime"
 
 num1="$((num1 + num2))"
 
+# if [[ "$LLSUB_RANK" == "$(($LLSUB_SIZE - 1))" ]]; then
+#     echo "============================================================"
+#     echo "submitting film simulation jobs"
+#     LLsub ./submit_0.3_film_simulation_1D_LLsub.sh [27,12,4] -q spot-xeon-p8
+#     echo "============================================================"
+# fi
+
 if [[ "$LLSUB_RANK" == "$(($LLSUB_SIZE - 1))" ]]; then
     echo "============================================================"
     echo "submitting film simulation jobs"
-    LLsub ./submit_0.2_film_simulation_LLsub.sh [27,12,4] -q spot-xeon-p8
+    LLsub ./submit_0.3_film_simulation_1D_LLsub.sh [8,12,4]
     echo "============================================================"
 fi
